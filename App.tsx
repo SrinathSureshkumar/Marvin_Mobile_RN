@@ -6,7 +6,7 @@ import AppNavigator from './src/navigation/AppNavigator';
 const App = () => {
   return (
     <SafeAreaProvider>
-      <StatusBar barStyle="dark-content" />
+      <StatusBar barStyle="default" />
       <AppNavigator />
     </SafeAreaProvider>
   );

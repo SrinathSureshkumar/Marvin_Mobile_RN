@@ -18,6 +18,8 @@ type LoginNavProp = NativeStackNavigationProp<
   'Login'
 >;
 
+import LoginKeyIcon from '../assets/login_key.svg';
+
 const LoginScreen = () => {
   const navigation = useNavigation<LoginNavProp>();
 
@@ -88,7 +90,8 @@ const LoginScreen = () => {
 
       {/* SSO Button */}
       <TouchableOpacity style={styles.ssoButton}>
-        <Text style={styles.ssoText}>🔐  SSO</Text>
+        <LoginKeyIcon width={18} height={18} />
+        <Text style={styles.ssoText}>SSO</Text>
       </TouchableOpacity>
     </View>
   );
@@ -97,103 +100,106 @@ const LoginScreen = () => {
 export default LoginScreen;
 
 const styles = StyleSheet.create({
-    container: {
-      flex: 1,
-      backgroundColor: '#FFFFFF',
-      paddingHorizontal: 24,
-      paddingTop: 60,
-    },
-    header: {
-      flexDirection: 'row',
-      justifyContent: 'space-between',
-      alignItems: 'center',
-    },
-    cxLogo: {
-      width: 180,
-      height: 75,
-      marginTop: 20,
-      marginLeft: '35%',
-    },
-    title: {
-      textAlign: 'center',
-      fontSize: 36,
-      fontWeight: '700',
-      marginTop: 150,
-      marginBottom: 32,
-    },
-    label: {
-      fontSize: 14,
-      fontWeight: '600',
-      marginBottom: 6,
-    },
-    input: {
-      height: 48,
-      borderWidth: 1,
-      borderColor: '#B0B7C3',
-      borderRadius: 8,
-      paddingHorizontal: 12,
-      marginBottom: 20,
-    },
-    passwordHeader: {
-      flexDirection: 'row',
-      justifyContent: 'space-between',
-      alignItems: 'center',
-      marginBottom: 6,
-    },
-    passwordContainer: {
-      flexDirection: 'row',
-      alignItems: 'center',
-      borderWidth: 1,
-      borderColor: '#B0B7C3',
-      borderRadius: 8,
-      paddingHorizontal: 12,
-      height: 48,
-      marginBottom: 28,
-    },
-    passwordInput: {
-      flex: 1,
-    },
-    showText: {
-      color: '#2563EB',
-      fontWeight: '600',
-    },
-    loginButton: {
-      backgroundColor: '#0A6ED1',
-      height: 48,
-      borderRadius: 8,
-      alignItems: 'center',
-      justifyContent: 'center',
-    },
-    loginText: {
-      color: '#FFFFFF',
-      fontSize: 16,
-      fontWeight: '600',
-    },
-    divider: {
-      flexDirection: 'row',
-      alignItems: 'center',
-      marginVertical: 32,
-    },
-    line: {
-      flex: 1,
-      height: 1,
-      backgroundColor: '#D1D5DB',
-    },
-    orText: {
-      marginHorizontal: 12,
-      color: '#6B7280',
-    },
-    ssoButton: {
-      borderWidth: 1,
-      borderColor: '#0A6ED1',
-      height: 48,
-      borderRadius: 8,
-      alignItems: 'center',
-      justifyContent: 'center',
-    },
-    ssoText: {
-      color: '#0A6ED1',
-      fontSize: 16,
-      fontWeight: '600',
-    },
-  });
+  container: {
+    flex: 1,
+    backgroundColor: '#FFFFFF',
+    paddingHorizontal: 24,
+    paddingTop: 60,
+  },
+  header: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+  },
+  cxLogo: {
+    width: 180,
+    height: 75,
+    marginTop: 20,
+    marginLeft: '35%',
+  },
+  title: {
+    textAlign: 'center',
+    fontSize: 36,
+    fontWeight: '700',
+    marginTop: 150,
+    marginBottom: 32,
+  },
+  label: {
+    fontSize: 14,
+    fontWeight: '600',
+    marginBottom: 6,
+  },
+  input: {
+    height: 48,
+    borderWidth: 1,
+    borderColor: '#B0B7C3',
+    borderRadius: 8,
+    paddingHorizontal: 12,
+    marginBottom: 20,
+  },
+  passwordHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 6,
+  },
+  passwordContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    borderWidth: 1,
+    borderColor: '#B0B7C3',
+    borderRadius: 8,
+    paddingHorizontal: 12,
+    height: 48,
+    marginBottom: 28,
+  },
+  passwordInput: {
+    flex: 1,
+  },
+  showText: {
+    color: '#2563EB',
+    fontWeight: '600',
+  },
+  loginButton: {
+    backgroundColor: '#0A6ED1',
+    height: 48,
+    borderRadius: 8,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  loginText: {
+    color: '#FFFFFF',
+    fontSize: 16,
+    fontWeight: '600',
+  },
+  divider: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginVertical: 32,
+  },
+  line: {
+    flex: 1,
+    height: 1,
+    backgroundColor: '#D1D5DB',
+  },
+  orText: {
+    marginHorizontal: 12,
+    color: '#6B7280',
+  },
+  ssoButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 4, // spacing between icon & text (RN 0.71+)
+    borderWidth: 1,
+    borderColor: '#0A6ED1',
+    height: 48,
+    borderRadius: 8,
+  },
+  
+  ssoText: {
+    color: '#0A6ED1',
+    fontSize: 16,
+    fontWeight: '600',
+  },
+});
