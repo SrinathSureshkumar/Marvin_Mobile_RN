@@ -1,6 +1,10 @@
 import React from 'react';
 import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
 
+/* SVGs */
+import SideMenuIcon from '../../assets/sidemenu.svg';
+import SapLogo from '../../assets/logo_sap.svg';
+
 type Props = {
   openMenu: () => void;
 };
@@ -8,10 +12,16 @@ type Props = {
 const MetricsScreen = ({ openMenu }: Props) => {
   return (
     <View style={styles.container}>
-      <TouchableOpacity onPress={openMenu} style={styles.menuBtn}>
-        <Text style={styles.menuText}>☰</Text>
-      </TouchableOpacity>
+      {/* HEADER */}
+      <View style={styles.headerRow}>
+        <TouchableOpacity onPress={openMenu}>
+          <SideMenuIcon width={28} height={28} />
+        </TouchableOpacity>
 
+        <SapLogo width={90} height={48} />
+      </View>
+
+      {/* CONTENT */}
       <Text style={styles.text}>Metrics</Text>
     </View>
   );
@@ -19,22 +29,24 @@ const MetricsScreen = ({ openMenu }: Props) => {
 
 export default MetricsScreen;
 
+/* ---------- STYLES ---------- */
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    justifyContent: 'center',
+    paddingTop: 60,
     alignItems: 'center',
   },
-  menuBtn: {
+  headerRow: {
     position: 'absolute',
     top: 50,
     left: 20,
-  },
-  menuText: {
-    fontSize: 28,
-    fontWeight: '700',
+    right: 20,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 32,
   },
   text: {
+    marginTop: 120,
     fontSize: 24,
     fontWeight: '600',
   },
