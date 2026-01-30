@@ -1,10 +1,14 @@
 import React from 'react';
-import { View, Text, StyleSheet } from 'react-native';
+import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
 
-const ChatScreen = () => {
+const ChatScreen = ({ openMenu }: { openMenu: () => void }) => {
   return (
     <View style={styles.container}>
-      <Text style={styles.text}>Welcome to Chat 🚀</Text>
+      <TouchableOpacity style={styles.menuBtn} onPress={openMenu}>
+        <Text style={styles.menuText}>☰</Text>
+      </TouchableOpacity>
+
+      <Text style={styles.text}>Chat Screen</Text>
     </View>
   );
 };
@@ -12,14 +16,8 @@ const ChatScreen = () => {
 export default ChatScreen;
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    alignItems: 'center',
-    justifyContent: 'center',
-    backgroundColor: '#FFFFFF',
-  },
-  text: {
-    fontSize: 24,
-    fontWeight: '600',
-  },
+  container: { flex: 1, justifyContent: 'center', alignItems: 'center' },
+  menuBtn: { position: 'absolute', top: 50, left: 20 },
+  menuText: { fontSize: 28, fontWeight: '700' },
+  text: { fontSize: 24, fontWeight: '600' },
 });

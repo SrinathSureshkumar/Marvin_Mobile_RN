@@ -1,10 +1,18 @@
 import React from 'react';
-import { View, Text, StyleSheet } from 'react-native';
+import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
 
-const DashboardScreen = () => {
+type Props = {
+  openMenu: () => void;
+};
+
+const DashboardScreen = ({ openMenu }: Props) => {
   return (
     <View style={styles.container}>
-      <Text style={styles.text}>Welcome to Dashboard 🚀</Text>
+      <TouchableOpacity onPress={openMenu} style={styles.menuBtn}>
+        <Text style={styles.menuText}>☰</Text>
+      </TouchableOpacity>
+
+      <Text style={styles.text}>Dashboard</Text>
     </View>
   );
 };
@@ -14,9 +22,17 @@ export default DashboardScreen;
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: '#FFFFFF',
+    alignItems: 'center',
+  },
+  menuBtn: {
+    position: 'absolute',
+    top: 50,
+    left: 20,
+  },
+  menuText: {
+    fontSize: 28,
+    fontWeight: '700',
   },
   text: {
     fontSize: 24,
