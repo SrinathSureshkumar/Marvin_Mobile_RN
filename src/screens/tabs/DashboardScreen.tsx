@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import {
   View,
   Text,
@@ -7,6 +7,7 @@ import {
   FlatList,
   Modal,
   Pressable,
+  ActivityIndicator,
 } from 'react-native';
 
 /* SVGs */
@@ -19,26 +20,100 @@ type Props = {
   openMenu: () => void;
 };
 
-/* Dummy card data */
-const DATA = [
-  { id: '1' },
-  { id: '2' },
-  { id: '3' },
-  { id: '4' },
+/* ---------------- SAMPLE FALLBACK DATA ---------------- */
+const SAMPLE_DATA = [
+  {
+    tid: 'demo-1',
+    cid: 'US East',
+    storefrontScore: 50,
+    backofficeScore: 60,
+  },
+  {
+    tid: 'demo-2',
+    cid: 'EU West',
+    storefrontScore: 30,
+    backofficeScore: 70,
+  },
 ];
 
-/* Filter options */
+/* FILTER OPTIONS */
 const PRODUCT_TYPES = ['C4C', 'SSP', 'CXAI', 'CCV20', 'SCV2', 'All'];
 
 const DashboardScreen = ({ openMenu }: Props) => {
+  const [data, setData] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
   const [filterVisible, setFilterVisible] = useState(false);
   const [selectedProduct, setSelectedProduct] = useState('CCV20');
+
+  /* ---------------- API CALL ---------------- */
+  useEffect(() => {
+    fetchDashboardData();
+  }, []);
+
+  const fetchDashboardData = async () => {
+    try {
+      const response = await fetch('https://your-api-url-here');
+      const json = await response.json();
+
+      // 🔐 SAFELY extract data
+      const payload =
+        json?.responseBody?.[0]?.responseBody ?? [];
+
+      const normalized = payload.map((item: any, index: number) => {
+        const storefront =
+          item.ars?.find((a: any) => a.name === 'storefront')?.score ?? 0;
+        const backoffice =
+          item.ars?.find((a: any) => a.name === 'backoffice')?.score ?? 0;
+
+        return {
+          tid: item.tid ?? `tid-${index}`,
+          cid: item.cid ?? 'Unknown',
+          storefrontScore: storefront,
+          backofficeScore: backoffice,
+        };
+      });
+
+      setData(normalized);
+    } catch (error) {
+      console.log('API failed, using sample data');
+      setData(SAMPLE_DATA);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const onSelectProduct = (value: string) => {
     setSelectedProduct(value);
     setFilterVisible(false);
   };
 
+  /* ---------------- RENDER CARD ---------------- */
+  const renderItem = ({ item }: { item: any }) => (
+    <View style={styles.card}>
+      <View style={styles.cardHeader}>
+        <View style={styles.iconCircle}>
+          <CartImg width={18} height={18} />
+        </View>
+
+        <View>
+          <Text style={styles.storeTitle}>{item.cid}</Text>
+          <Text style={styles.storeSub}>{item.tid}</Text>
+        </View>
+      </View>
+
+      <View style={styles.cardRow}>
+        <Text>Storefront risk score</Text>
+        <Text>{item.storefrontScore}%</Text>
+      </View>
+
+      <View style={styles.cardRow}>
+        <Text>Backoffice risk score</Text>
+        <Text>{item.backofficeScore}%</Text>
+      </View>
+    </View>
+  );
+
+  /* ---------------- UI ---------------- */
   return (
     <View style={styles.container}>
       {/* HEADER */}
@@ -46,14 +121,12 @@ const DashboardScreen = ({ openMenu }: Props) => {
         <TouchableOpacity onPress={openMenu}>
           <SideMenuIcon width={28} height={28} />
         </TouchableOpacity>
-
         <SapLogo width={90} height={48} />
       </View>
 
       {/* TITLE + FILTER */}
       <View style={styles.titleRow}>
         <Text style={styles.title}>Marvin Dashboard</Text>
-
         <TouchableOpacity onPress={() => setFilterVisible(true)}>
           <FilterImg width={24} height={24} />
         </TouchableOpacity>
@@ -61,40 +134,25 @@ const DashboardScreen = ({ openMenu }: Props) => {
 
       {/* SUB HEADER */}
       <View style={styles.subHeader}>
-        <Text>Product Type: <Text style={styles.bold}>{selectedProduct}</Text></Text>
-        <Text>Tenant Count: 4</Text>
+        <Text>
+          Product Type: <Text style={styles.bold}>{selectedProduct}</Text>
+        </Text>
+        <Text>Tenant Count: {data.length}</Text>
       </View>
 
-      {/* CARDS */}
-      <FlatList
-        data={DATA}
-        keyExtractor={(item) => item.id}
-        contentContainerStyle={{ paddingBottom: 24 }}
-        renderItem={() => (
-          <View style={styles.card}>
-            <View style={styles.cardHeader}>
-              <View style={styles.iconCircle}>
-                <CartImg width={18} height={18} />
-              </View>
-
-              <View>
-                <Text style={styles.storeTitle}>Sample Store</Text>
-                <Text style={styles.storeSub}>emea12</Text>
-              </View>
-            </View>
-
-            <View style={styles.cardRow}>
-              <Text>Storefront risk score</Text>
-              <Text>10%</Text>
-            </View>
-
-            <View style={styles.cardRow}>
-              <Text>Backoffice risk score</Text>
-              <Text>65%</Text>
-            </View>
-          </View>
-        )}
-      />
+      {/* CONTENT */}
+      {loading ? (
+        <ActivityIndicator size="large" />
+      ) : (
+        <FlatList
+          data={data}
+          keyExtractor={(item, index) =>
+            item.tid ?? item.cid ?? `item-${index}`
+          } // 🔥 THIS FIXES YOUR ERROR
+          renderItem={renderItem}
+          contentContainerStyle={{ paddingBottom: 24 }}
+        />
+      )}
 
       {/* FILTER MODAL */}
       <Modal
@@ -103,17 +161,15 @@ const DashboardScreen = ({ openMenu }: Props) => {
         animationType="fade"
         onRequestClose={() => setFilterVisible(false)}
       >
-        {/* BACKDROP */}
         <Pressable
           style={styles.backdrop}
           onPress={() => setFilterVisible(false)}
         />
 
-        {/* POPUP */}
         <View style={styles.filterPopup}>
           {PRODUCT_TYPES.map(item => (
             <TouchableOpacity
-              key={item}
+              key={item} // 🔥 KEY ADDED
               style={styles.filterItem}
               onPress={() => onSelectProduct(item)}
             >
@@ -135,7 +191,7 @@ const DashboardScreen = ({ openMenu }: Props) => {
 
 export default DashboardScreen;
 
-/* ---------- STYLES ---------- */
+/* ---------------- STYLES ---------------- */
 const styles = StyleSheet.create({
   container: {
     flex: 1,
@@ -156,7 +212,6 @@ const styles = StyleSheet.create({
   titleRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    alignItems: 'center',
     marginBottom: 12,
   },
 
@@ -214,7 +269,6 @@ const styles = StyleSheet.create({
     marginTop: 4,
   },
 
-  /* MODAL */
   backdrop: {
     ...StyleSheet.absoluteFillObject,
     backgroundColor: 'rgba(0,0,0,0.2)',
