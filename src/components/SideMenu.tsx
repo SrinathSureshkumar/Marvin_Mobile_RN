@@ -61,7 +61,7 @@ const SideMenu = ({ visible, onClose, onNavigate }: Props) => {
 
         <View style={styles.divider} />
 
-        <MenuItem label="Logout" onPress={onClose} />
+        <MenuItem label="Logout" onPress={() => onNavigate('Logout')} />
       </Animated.View>
     </View>
   );
