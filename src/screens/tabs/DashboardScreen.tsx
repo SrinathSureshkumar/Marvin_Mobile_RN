@@ -41,12 +41,13 @@ const DashboardScreen = ({ openMenu }: Props) => {
     setLoading(true);
 
     try {
-      // ✅ MAIN API CALL (with logs)
       const json = await fetchDashboardData();
 
-      // 🔐 SAFE EXTRACTION
+      // ✅ FLATTEN ALL PAYLOADS (NO [0])
       const tenants =
-        json?.responseBody?.[0]?.responseBody ?? [];
+        json?.responseBody?.flatMap(
+          payload => payload.responseBody
+        ) ?? [];
 
       const normalized = tenants.map((item: any, index: number) => ({
         tid: item.tid ?? `tid-${index}`,
@@ -69,7 +70,7 @@ const DashboardScreen = ({ openMenu }: Props) => {
   const onSelectProduct = (value: string) => {
     setSelectedProduct(value);
     setFilterVisible(false);
-    // 🔁 later you can re-fetch with product param
+    // later → filter or re-fetch
   };
 
   /* ---------------- RENDER CARD ---------------- */
@@ -132,7 +133,7 @@ const DashboardScreen = ({ openMenu }: Props) => {
         <FlatList
           data={data}
           keyExtractor={(item, index) =>
-            item.tid ?? item.cid ?? `item-${index}`
+            item.tid ?? `item-${index}`
           }
           renderItem={renderItem}
           contentContainerStyle={{ paddingBottom: 24 }}
