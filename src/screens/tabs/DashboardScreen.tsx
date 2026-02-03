@@ -10,6 +10,9 @@ import {
   ActivityIndicator,
 } from 'react-native';
 
+/* API */
+import { fetchDashboardData } from '../../api/marvinApi';
+
 /* SVGs */
 import SideMenuIcon from '../../assets/sidemenu.svg';
 import SapLogo from '../../assets/logo_sap.svg';
@@ -20,22 +23,6 @@ type Props = {
   openMenu: () => void;
 };
 
-/* ---------------- SAMPLE FALLBACK DATA ---------------- */
-const SAMPLE_DATA = [
-  {
-    tid: 'demo-1',
-    cid: 'US East',
-    storefrontScore: 50,
-    backofficeScore: 60,
-  },
-  {
-    tid: 'demo-2',
-    cid: 'EU West',
-    storefrontScore: 30,
-    backofficeScore: 70,
-  },
-];
-
 /* FILTER OPTIONS */
 const PRODUCT_TYPES = ['C4C', 'SSP', 'CXAI', 'CCV20', 'SCV2', 'All'];
 
@@ -43,40 +30,37 @@ const DashboardScreen = ({ openMenu }: Props) => {
   const [data, setData] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [filterVisible, setFilterVisible] = useState(false);
-  const [selectedProduct, setSelectedProduct] = useState('CCV20');
+  const [selectedProduct, setSelectedProduct] = useState('All');
 
-  /* ---------------- API CALL ---------------- */
+  /* ---------------- LOAD DASHBOARD ---------------- */
   useEffect(() => {
-    fetchDashboardData();
+    loadDashboard();
   }, []);
 
-  const fetchDashboardData = async () => {
-    try {
-      const response = await fetch('https://your-api-url-here');
-      const json = await response.json();
+  const loadDashboard = async () => {
+    setLoading(true);
 
-      // 🔐 SAFELY extract data
-      const payload =
+    try {
+      // ✅ MAIN API CALL (with logs)
+      const json = await fetchDashboardData();
+
+      // 🔐 SAFE EXTRACTION
+      const tenants =
         json?.responseBody?.[0]?.responseBody ?? [];
 
-      const normalized = payload.map((item: any, index: number) => {
-        const storefront =
-          item.ars?.find((a: any) => a.name === 'storefront')?.score ?? 0;
-        const backoffice =
-          item.ars?.find((a: any) => a.name === 'backoffice')?.score ?? 0;
-
-        return {
-          tid: item.tid ?? `tid-${index}`,
-          cid: item.cid ?? 'Unknown',
-          storefrontScore: storefront,
-          backofficeScore: backoffice,
-        };
-      });
+      const normalized = tenants.map((item: any, index: number) => ({
+        tid: item.tid ?? `tid-${index}`,
+        cid: item.cid ?? 'Unknown',
+        storefrontScore:
+          item.ars?.find((a: any) => a.name === 'storefront')?.score ?? 0,
+        backofficeScore:
+          item.ars?.find((a: any) => a.name === 'backoffice')?.score ?? 0,
+      }));
 
       setData(normalized);
     } catch (error) {
-      console.log('API failed, using sample data');
-      setData(SAMPLE_DATA);
+      console.log('❌ Unexpected dashboard error', error);
+      setData([]);
     } finally {
       setLoading(false);
     }
@@ -85,6 +69,7 @@ const DashboardScreen = ({ openMenu }: Props) => {
   const onSelectProduct = (value: string) => {
     setSelectedProduct(value);
     setFilterVisible(false);
+    // 🔁 later you can re-fetch with product param
   };
 
   /* ---------------- RENDER CARD ---------------- */
@@ -148,7 +133,7 @@ const DashboardScreen = ({ openMenu }: Props) => {
           data={data}
           keyExtractor={(item, index) =>
             item.tid ?? item.cid ?? `item-${index}`
-          } // 🔥 THIS FIXES YOUR ERROR
+          }
           renderItem={renderItem}
           contentContainerStyle={{ paddingBottom: 24 }}
         />
@@ -169,7 +154,7 @@ const DashboardScreen = ({ openMenu }: Props) => {
         <View style={styles.filterPopup}>
           {PRODUCT_TYPES.map(item => (
             <TouchableOpacity
-              key={item} // 🔥 KEY ADDED
+              key={item}
               style={styles.filterItem}
               onPress={() => onSelectProduct(item)}
             >
