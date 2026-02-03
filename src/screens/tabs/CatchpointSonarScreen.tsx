@@ -1,4 +1,4 @@
-import React, { useRef, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import {
   View,
   Text,
@@ -9,7 +9,11 @@ import {
   Platform,
   UIManager,
   Dimensions,
+  ActivityIndicator,
 } from 'react-native';
+
+import { fetchCatchpointSonar, SonarType } from '../../api/marvinApi';
+import { CatchpointIncident } from '../../models/CatchpointSonarModels';
 
 /* SVGs */
 import SideMenuIcon from '../../assets/sidemenu.svg';
@@ -19,11 +23,7 @@ import ChevronDown from '../../assets/chevron_down.svg';
 
 const { width } = Dimensions.get('window');
 
-/* Enable LayoutAnimation on Android */
-if (
-  Platform.OS === 'android' &&
-  UIManager.setLayoutAnimationEnabledExperimental
-) {
+if (Platform.OS === 'android' && UIManager.setLayoutAnimationEnabledExperimental) {
   UIManager.setLayoutAnimationEnabledExperimental(true);
 }
 
@@ -35,29 +35,104 @@ const CatchpointSonarScreen = ({ openMenu }: Props) => {
   const pagerRef = useRef<ScrollView>(null);
 
   const [activeTab, setActiveTab] = useState(0);
-  const [collapsedISP, setCollapsedISP] = useState(false);
-  const [collapsedService, setCollapsedService] = useState(false);
+  const [loading, setLoading] = useState(true);
+  const [ispData, setIspData] = useState<CatchpointIncident[]>([]);
+  const [serviceData, setServiceData] = useState<CatchpointIncident[]>([]);
+  const [expanded, setExpanded] = useState<string | null>(null);
 
-  /* ---------- HANDLERS ---------- */
+  useEffect(() => {
+    loadData();
+  }, []);
+
+  const loadData = async () => {
+    try {
+      setLoading(true);
+      const isp = await fetchCatchpointSonar('ISP');
+      const service = await fetchCatchpointSonar('SERVICE');
+
+      setIspData(isp.responseBody.responseBody ?? []);
+      setServiceData(service.responseBody.responseBody ?? []);
+    } catch (e) {
+      console.log('❌ Sonar API failed', e);
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const onTabPress = (index: number) => {
     setActiveTab(index);
-    pagerRef.current?.scrollTo({
-      x: index * width,
-      animated: true,
-    });
+    pagerRef.current?.scrollTo({ x: index * width, animated: true });
   };
 
-  const toggleISP = () => {
-    LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
-    setCollapsedISP(!collapsedISP);
+  const renderIncident = (item: CatchpointIncident) => {
+    const open = expanded === item.asnName;
+  
+    return (
+      <View key={item.asnName} style={styles.card}>
+        {/* HEADER */}
+        <TouchableOpacity
+          style={styles.cardHeader}
+          onPress={() => {
+            LayoutAnimation.configureNext(
+              LayoutAnimation.Presets.easeInEaseOut
+            );
+            setExpanded(open ? null : item.asnName);
+          }}
+          activeOpacity={0.8}
+        >
+          <Text style={styles.cardTitle}>{item.asnName}</Text>
+          {open ? <ChevronUp /> : <ChevronDown />}
+        </TouchableOpacity>
+  
+        {/* CONTENT */}
+        {open && (
+          <View style={styles.cardContent}>
+            <Text style={styles.sectionLabel}>Address list</Text>
+            <Text style={styles.valueBold}>ASN: {item.asnName}</Text>
+  
+            <Text style={styles.muted}>
+              No error types available
+            </Text>
+  
+            <View style={styles.row}>
+              <Text style={styles.label}>Regions</Text>
+              <Text style={styles.valueRight}>
+                {item.regions.map(r => r.name).join(', ') || '—'}
+              </Text>
+            </View>
+  
+            <View style={styles.row}>
+              <Text style={styles.label}>Locations</Text>
+              <Text style={styles.valueRight}>
+                {item.locations.length
+                  ? item.locations.join(', ')
+                  : '—'}
+              </Text>
+            </View>
+  
+            <View style={styles.row}>
+              <Text style={styles.label}>Severity Score</Text>
+              <Text style={styles.valueRight}>
+                {item.severityScore}
+              </Text>
+            </View>
+          </View>
+        )}
+      </View>
+    );
   };
+  
 
-  const toggleService = () => {
-    LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
-    setCollapsedService(!collapsedService);
-  };
+  if (loading) {
+    return (
+      <View>
+        <ActivityIndicator size="large" />
+      </View>
+    );
+  }
 
-  /* ---------- UI ---------- */
+  const data = activeTab === 0 ? ispData : serviceData;
+
   return (
     <View style={styles.container}>
       {/* HEADER */}
@@ -68,77 +143,38 @@ const CatchpointSonarScreen = ({ openMenu }: Props) => {
         <SapLogo width={90} height={48} />
       </View>
 
-      {/* TITLE */}
       <Text style={styles.title}>Catchpoint Sonar</Text>
 
-      {/* TOP TABS */}
+      {/* TABS */}
       <View style={styles.tabRow}>
-        <TouchableOpacity
-          style={[styles.tabButton, activeTab === 0 && styles.activeTab]}
-          onPress={() => onTabPress(0)}
-        >
-          <Text
-            style={[
-              styles.tabText,
-              activeTab === 0 && styles.activeTabText,
-            ]}
+        {['ISP Incidents', 'Service Incidents'].map((t, i) => (
+          <TouchableOpacity
+            key={t}
+            style={[styles.tabButton, activeTab === i && styles.activeTab]}
+            onPress={() => onTabPress(i)}
           >
-            ISP Incidents
-          </Text>
-        </TouchableOpacity>
-
-        <TouchableOpacity
-          style={[styles.tabButton, activeTab === 1 && styles.activeTab]}
-          onPress={() => onTabPress(1)}
-        >
-          <Text
-            style={[
-              styles.tabText,
-              activeTab === 1 && styles.activeTabText,
-            ]}
-          >
-            Service Incidents
-          </Text>
-        </TouchableOpacity>
+            <Text
+              style={[
+                styles.tabText,
+                activeTab === i && styles.activeTabText,
+              ]}
+            >
+              {t}
+            </Text>
+          </TouchableOpacity>
+        ))}
       </View>
 
-      {/* VIEW PAGER */}
-      <ScrollView
-        ref={pagerRef}
-        horizontal
-        pagingEnabled
-        showsHorizontalScrollIndicator={false}
-        scrollEnabled={false}
-      >
-        {/* ISP INCIDENTS */}
-        <View style={styles.page}>
-          <IncidentCard
-            title="COGENT-174"
-            collapsed={collapsedISP}
-            onToggle={toggleISP}
-            regions="Europe Mid, East Africa"
-            locations="Dallas US, Atlanta US, Denver US"
-            severity="2"
-          />
-        </View>
-
-        {/* SERVICE INCIDENTS */}
-        <View style={styles.page}>
-          <IncidentCard
-            title="AWS-OUTAGE-91"
-            collapsed={collapsedService}
-            onToggle={toggleService}
-            regions="Asia Pacific"
-            locations="Mumbai IN, Singapore SG"
-            severity="3"
-          />
-        </View>
+      <ScrollView ref={pagerRef} horizontal pagingEnabled scrollEnabled={false}>
+        <View style={styles.page}>{data.map(renderIncident)}</View>
+        <View style={styles.page}>{data.map(renderIncident)}</View>
       </ScrollView>
     </View>
   );
 };
 
 export default CatchpointSonarScreen;
+
 
 /* ---------- INCIDENT CARD ---------- */
 type CardProps = {
@@ -257,52 +293,79 @@ const styles = StyleSheet.create({
     padding: 20,
   },
 
-  card: {
-    backgroundColor: '#FFFFFF',
-    borderRadius: 12,
-    shadowColor: '#000',
-    shadowOpacity: 0.1,
-    shadowRadius: 6,
-    elevation: 3,
-  },
-
-  cardHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    padding: 16,
-    backgroundColor: '#EEF6FF',
-    borderTopLeftRadius: 12,
-    borderTopRightRadius: 12,
-  },
-
-  cardTitle: {
-    fontSize: 16,
-    fontWeight: '700',
-  },
-
-  cardContent: {
-    padding: 16,
-    gap: 6,
-  },
-
-  label: {
-    fontSize: 12,
-    color: '#6B7280',
-  },
-
   value: {
     fontSize: 14,
     fontWeight: '600',
   },
 
+  sectionLabel: {
+    fontSize: 13,
+    color: '#6B7280',
+    marginBottom: 4,
+  },
+  
+  valueBold: {
+    fontSize: 14,
+    fontWeight: '700',
+    color: '#111827',
+    marginBottom: 4,
+  },
+  
+  valueRight: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: '#111827',
+    textAlign: 'right',
+    maxWidth: '60%',
+  },
+  
+  card: {
+    backgroundColor: '#FFFFFF',
+    borderRadius: 14,
+    marginBottom: 16,
+    overflow: 'hidden',
+    shadowColor: '#000',
+    shadowOpacity: 0.08,
+    shadowRadius: 6,
+    elevation: 3,
+  },
+  
+  cardHeader: {
+    backgroundColor: '#EEF6FF',
+    paddingHorizontal: 16,
+    paddingVertical: 14,
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+  },
+  
+  cardTitle: {
+    fontSize: 16,
+    fontWeight: '700',
+    color: '#0F172A',
+  },
+  
+  cardContent: {
+    padding: 16,
+    marginVertical: 10
+  },
+  
+  label: {
+    fontSize: 13,
+    color: '#6B7280',
+  },
+  
   muted: {
     fontSize: 13,
     color: '#9CA3AF',
+    marginBottom: 10,
   },
-
+  
   row: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    marginTop: 6,
+    alignItems: 'flex-start',
+    marginTop: 8,
   },
+  
 });
