@@ -14,12 +14,14 @@ import CatchpointSonarIcon from '../assets/catchpointsonar.svg';
 import CatchpointSonarIconActive from '../assets/catchpointsonar_active.svg';
 import ChatIcon from '../assets/chat.svg';
 import ChatIconActive from '../assets/chat_active.svg';
+import CatchpointStackmap from '../assets/catchpoint_stackmap.svg';
+import CatchpointStackmapActive from '../assets/catchpoint_stackmap_active.svg';
 
 export type TabParamList = {
   Dashboard: undefined;
   Metrics: undefined;
   CatchpointSonar: undefined;
-  Chat: undefined;
+  Catchpoint: undefined;
 };
 
 type Props = {
@@ -58,11 +60,17 @@ const TabNavigator = ({ openMenu }: Props) => {
               ) : (
                 <CatchpointSonarIcon width={ICON_SIZE} height={ICON_SIZE} />
               );
-            case 'Chat':
+            // case 'Chat':
+            //   return focused ? (
+            //     <ChatIconActive width={ICON_SIZE} height={ICON_SIZE} />
+            //   ) : (
+            //     <ChatIcon width={ICON_SIZE} height={ICON_SIZE} />
+            //   );
+            case 'Catchpoint':
               return focused ? (
-                <ChatIconActive width={ICON_SIZE} height={ICON_SIZE} />
+                <CatchpointStackmapActive width={ICON_SIZE} height={ICON_SIZE} />
               ) : (
-                <ChatIcon width={ICON_SIZE} height={ICON_SIZE} />
+                <CatchpointStackmap width={ICON_SIZE} height={ICON_SIZE} />
               );
           }
         },
@@ -77,7 +85,10 @@ const TabNavigator = ({ openMenu }: Props) => {
       <Tab.Screen name="CatchpointSonar">
         {() => <CatchpointSonarScreen openMenu={openMenu} />}
       </Tab.Screen>
-      <Tab.Screen name="Chat">
+      {/* <Tab.Screen name="Chat">
+        {() => <ChatScreen openMenu={openMenu} />}
+      </Tab.Screen> */}
+      <Tab.Screen name="Catchpoint">
         {() => <ChatScreen openMenu={openMenu} />}
       </Tab.Screen>
     </Tab.Navigator>

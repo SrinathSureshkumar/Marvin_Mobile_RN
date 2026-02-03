@@ -8,6 +8,13 @@ import {
   Dimensions,
 } from 'react-native';
 
+/* 🔹 SVG ICONS */
+import DashboardIcon from '../assets/dashboard.svg';
+import MetricsIcon from '../assets/metrics.svg';
+import SonarIcon from '../assets/catchpointsonar.svg';
+import StackmapIcon from '../assets/catchpoint_stackmap.svg';
+import LogoutIcon from '../assets/chat.svg';
+
 const SCREEN_WIDTH = Dimensions.get('window').width;
 const MENU_WIDTH = SCREEN_WIDTH * 0.75;
 
@@ -40,46 +47,73 @@ const SideMenu = ({ visible, onClose, onNavigate }: Props) => {
 
   return (
     <View style={styles.overlay}>
-      {/* Backdrop */}
+      {/* BACKDROP */}
       <Animated.View style={[styles.backdrop, { opacity: backdropOpacity }]}>
         <TouchableOpacity style={{ flex: 1 }} onPress={onClose} />
       </Animated.View>
 
-      {/* Menu */}
+      {/* MENU */}
       <Animated.View
         style={[styles.menu, { transform: [{ translateX }] }]}
       >
         <Text style={styles.title}>Marvin Mobile</Text>
 
-        <MenuItem label="Dashboard" onPress={() => onNavigate('Dashboard')} />
-        <MenuItem label="Metrics" onPress={() => onNavigate('Metrics')} />
+        <MenuItem
+          label="Dashboard"
+          Icon={DashboardIcon}
+          onPress={() => onNavigate('Dashboard')}
+        />
+
+        <MenuItem
+          label="Metrics"
+          Icon={MetricsIcon}
+          onPress={() => onNavigate('Metrics')}
+        />
+
         <MenuItem
           label="Catchpoint Sonar"
+          Icon={SonarIcon}
           onPress={() => onNavigate('CatchpointSonar')}
         />
-        <MenuItem label="Chat" onPress={() => onNavigate('Chat')} />
+
+        <MenuItem
+          label="Catchpoint Stackmap"
+          Icon={StackmapIcon}
+          onPress={() => onNavigate('CatchpointStackmap')}
+        />
 
         <View style={styles.divider} />
 
-        <MenuItem label="Logout" onPress={() => onNavigate('Logout')} />
+        <MenuItem
+          label="Logout"
+          Icon={LogoutIcon}
+          onPress={() => onNavigate('Logout')}
+        />
       </Animated.View>
     </View>
   );
 };
 
-const MenuItem = ({
-  label,
-  onPress,
-}: {
+/* ---------- MENU ITEM ---------- */
+
+type MenuItemProps = {
   label: string;
   onPress: () => void;
-}) => (
+  Icon: React.FC<{ width?: number; height?: number }>;
+};
+
+const MenuItem = ({ label, onPress, Icon }: MenuItemProps) => (
   <TouchableOpacity style={styles.item} onPress={onPress}>
-    <Text style={styles.itemText}>{label}</Text>
+    <View style={styles.itemRow}>
+      <Icon width={20} height={20} />
+      <Text style={styles.itemText}>{label}</Text>
+    </View>
   </TouchableOpacity>
 );
 
 export default SideMenu;
+
+/* ---------- STYLES ---------- */
 
 const styles = StyleSheet.create({
   overlay: {
@@ -109,6 +143,11 @@ const styles = StyleSheet.create({
   },
   item: {
     paddingVertical: 14,
+  },
+  itemRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12, // RN 0.71+
   },
   itemText: {
     fontSize: 16,
