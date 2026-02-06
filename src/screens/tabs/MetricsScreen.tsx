@@ -1,4 +1,5 @@
-import React, { useState } from 'react';
+/* eslint-disable react-native/no-inline-styles */
+import React, { useEffect, useMemo, useState } from 'react';
 import {
   View,
   Text,
@@ -6,8 +7,9 @@ import {
   StyleSheet,
   Modal,
   Pressable,
+  ActivityIndicator,
 } from 'react-native';
-import Svg, { Circle } from 'react-native-svg';
+import Svg, { Circle, Path, Text as SvgText } from 'react-native-svg';
 
 /* SVGs */
 import SideMenuIcon from '../../assets/sidemenu.svg';
@@ -15,43 +17,143 @@ import SapLogo from '../../assets/logo_sap.svg';
 import FilterIcon from '../../assets/dashboard_filter_img.svg';
 import InfoIcon from '../../assets/metrics_info.svg';
 
+/* API */
+import {
+  fetchDashboardData,
+  fetchDashboardByProduct,
+} from '../../api/marvinApi';
+
+import { Tenant } from '../../models/DashboardModels';
+import { ProductType, ProductTypeConfig } from '../../constants/ProductType';
+
 type Props = {
   openMenu: () => void;
 };
 
-const PRODUCT_TYPES = ['C4C', 'SSP', 'CXAI', 'CCV20', 'SCV2', 'All'];
+/* ================= DONUT CONSTANTS ================= */
+const SIZE = 220;
+const STROKE_WIDTH = 30;
+const RADIUS = (SIZE - STROKE_WIDTH) / 2;
+const CENTER = SIZE / 2;
+
+/* COLORS (matches iOS) */
+const COLORS = {
+  INFRA: '#2F6FED',
+  SERVICE: '#6BCB63',
+  APPLICATION: '#F28200',
+};
+
+/* ================= ARC PATH ================= */
+const calculateArc = (
+  startAngle: number,
+  endAngle: number,
+  innerRadius: number,
+  outerRadius: number,
+) => {
+  const startRad = (startAngle * Math.PI) / 180;
+  const endRad = (endAngle * Math.PI) / 180;
+
+  const x1 = CENTER + outerRadius * Math.cos(startRad);
+  const y1 = CENTER + outerRadius * Math.sin(startRad);
+  const x2 = CENTER + outerRadius * Math.cos(endRad);
+  const y2 = CENTER + outerRadius * Math.sin(endRad);
+
+  const x3 = CENTER + innerRadius * Math.cos(endRad);
+  const y3 = CENTER + innerRadius * Math.sin(endRad);
+  const x4 = CENTER + innerRadius * Math.cos(startRad);
+  const y4 = CENTER + innerRadius * Math.sin(startRad);
+
+  const largeArc = endRad - startRad > Math.PI ? 1 : 0;
+
+  return `
+    M ${x1} ${y1}
+    A ${outerRadius} ${outerRadius} 0 ${largeArc} 1 ${x2} ${y2}
+    L ${x3} ${y3}
+    A ${innerRadius} ${innerRadius} 0 ${largeArc} 0 ${x4} ${y4}
+    Z
+  `;
+};
 
 const MetricsScreen = ({ openMenu }: Props) => {
-  const radius = 70;
-  const strokeWidth = 18;
-  const circumference = 2 * Math.PI * radius;
-
+  const [loading, setLoading] = useState(true);
   const [filterVisible, setFilterVisible] = useState(false);
-  const [selectedProduct, setSelectedProduct] = useState('CCV20');
   const [infoVisible, setInfoVisible] = useState(false);
+  const [selectedProduct, setSelectedProduct] =
+    useState<ProductType>(ProductType.ALL);
 
+  const [tenants, setTenants] = useState<Tenant[]>([]);
 
-  const onSelectProduct = (value: string) => {
-    setSelectedProduct(value);
-    setFilterVisible(false);
+  /* ================= LOAD DATA ================= */
+  const loadMetrics = async (product: ProductType) => {
+    setLoading(true);
+    try {
+      const json =
+        product === ProductType.ALL
+          ? await fetchDashboardData()
+          : await fetchDashboardByProduct(product);
+
+      const flat: Tenant[] =
+        json?.responseBody?.flatMap(p => p.responseBody) ?? [];
+
+      setTenants(flat);
+    } catch {
+      setTenants([]);
+    } finally {
+      setLoading(false);
+    }
   };
 
-  const getTodayDate = () => {
-    const today = new Date();
-    return today.toLocaleDateString('en-GB', {
-      day: '2-digit',
-      month: 'short',
-      year: 'numeric',
+  useEffect(() => {
+    loadMetrics(selectedProduct);
+  }, []);
+
+  /* ================= METRICS LOGIC ================= */
+  const metrics = useMemo(() => {
+    let infra = 0;
+    let service = 0;
+    let app = 0;
+    let total = 0;
+
+    tenants.forEach(t => {
+      t.brief?.forEach(b => {
+        total++;
+        switch (b.impactLevel?.toUpperCase()) {
+          case 'INFRASTRUCTURE':
+            infra++;
+            break;
+          case 'SERVICES':
+            service++;
+            break;
+          case 'APPLICATION':
+            app++;
+            break;
+        }
+      });
     });
-  };
 
-  const overlayData = [
-    { value: 5, color: '#E8892F', label: 'Service' },
-    { value: 15, color: '#6EEB3B', label: 'Application' },
+    return { infra, service, app, total };
+  }, [tenants]);
+
+  /* ================= CHART DATA ================= */
+  const chartData = [
+    { label: 'Infrastructure', value: metrics.infra, color: COLORS.INFRA },
+    { label: 'Service', value: metrics.service, color: COLORS.SERVICE },
+    { label: 'Application', value: metrics.app, color: COLORS.APPLICATION },
   ];
 
-  let progress = 0;
+  const segments = chartData.filter(i => i.value > 0);
 
+  /* ================= ANGLES ================= */
+  let currentAngle = -90;
+  const angles = segments.map(item => {
+    const angle = (item.value / metrics.total) * 360;
+    const start = currentAngle;
+    const end = currentAngle + angle;
+    currentAngle = end;
+    return { start, end };
+  });
+
+  /* ================= RENDER ================= */
   return (
     <View style={styles.container}>
       {/* HEADER */}
@@ -62,99 +164,125 @@ const MetricsScreen = ({ openMenu }: Props) => {
         <SapLogo width={90} height={48} />
       </View>
 
-      {/* TITLE ROW (METRICS + FILTER ICON) */}
+      {/* TITLE */}
       <View style={styles.titleRow}>
         <Text style={styles.title}>Metrics</Text>
-
         <TouchableOpacity onPress={() => setFilterVisible(true)}>
           <FilterIcon width={22} height={22} />
         </TouchableOpacity>
       </View>
 
-      {/* PRODUCT TYPE ROW (INFO ICON HERE) */}
+      {/* PRODUCT */}
       <View style={styles.productRow}>
         <Text style={styles.productText}>
-          Product Type: <Text style={styles.bold}>{selectedProduct}</Text>
+          Product Type:{' '}
+          <Text style={styles.bold}>
+            {ProductTypeConfig[selectedProduct].displayName}
+          </Text>
         </Text>
-
         <TouchableOpacity onPress={() => setInfoVisible(true)}>
           <InfoIcon width={18} height={18} />
         </TouchableOpacity>
-
       </View>
 
       {/* DATE CARD */}
       <View style={styles.card}>
-        <Text style={styles.date}>{getTodayDate()}</Text>
+        <Text style={styles.date}>
+          {new Date().toLocaleDateString('en-GB', {
+            day: '2-digit',
+            month: 'short',
+            year: 'numeric',
+          })}
+        </Text>
         <Text style={styles.sub}>Date</Text>
 
         <View style={styles.divider} />
 
         <View style={styles.rowBetween}>
           <Text style={styles.sub}>Current Observed Problems</Text>
-          <Text style={styles.count}>0</Text>
+          <Text style={styles.count}>{metrics.total}</Text>
         </View>
       </View>
 
       {/* DONUT CARD */}
       <View style={styles.card}>
-        <Text style={styles.overview}>Overview</Text>
         <Text style={styles.sub}>Impact Type</Text>
+        <Text style={styles.overview}>Overview</Text>
 
-        <View style={styles.chartContainer}>
-          <Svg width={180} height={180}>
-            {/* FULL BLUE BASE */}
-            <Circle
-              cx="90"
-              cy="90"
-              r={radius}
-              stroke="#2F6FED"
-              strokeWidth={strokeWidth}
-              fill="none"
-              rotation="-90"
-              origin="90, 90"
-            />
+        {loading ? (
+          <ActivityIndicator />
+        ) : (
+          <View style={styles.chartWrapper}>
+            <Svg width={SIZE} height={SIZE}>
+              {/* GREY BASE */}
+              <Circle
+                cx={CENTER}
+                cy={CENTER}
+                r={RADIUS}
+                stroke="#E5E7EB"
+                strokeWidth={STROKE_WIDTH}
+                fill="none"
+              />
 
-            {/* OVERLAYS */}
-            {overlayData.map((item, index) => {
-              const arcLength =
-                (item.value / 100) * circumference;
+              {/* SEGMENTS + NUMBERS */}
+{segments.map((item, index) => {
+  const { start, end } = angles[index];
+  const midAngle = (start + end) / 2;
+  const rad = (midAngle * Math.PI) / 180;
 
-              const strokeDasharray = `${arcLength} ${circumference}`;
-              const strokeDashoffset =
-                circumference - progress;
+  // ✅ EXACT CENTER OF COLOR BAND
+  const labelRadius = RADIUS;
 
-              progress += arcLength;
+  const labelX = CENTER + labelRadius * Math.cos(rad);
+  const labelY = CENTER + labelRadius * Math.sin(rad);
 
-              return (
-                <Circle
-                  key={index}
-                  cx="90"
-                  cy="90"
-                  r={radius}
-                  stroke={item.color}
-                  strokeWidth={strokeWidth}
-                  strokeDasharray={strokeDasharray}
-                  strokeDashoffset={strokeDashoffset}
-                  fill="none"
-                  rotation="-90"
-                  origin="90, 90"
-                />
-              );
-            })}
-          </Svg>
-        </View>
+  return (
+    <React.Fragment key={item.label}>
+      <Path
+        d={calculateArc(
+          start,
+          end,
+          RADIUS - STROKE_WIDTH / 2,
+          RADIUS + STROKE_WIDTH / 2,
+        )}
+        fill={item.color}
+      />
+
+      <SvgText
+        x={labelX}
+        y={labelY + 5}
+        fontSize="16"
+        fontWeight="700"
+        fill="#FFFFFF"
+        textAnchor="middle"
+      >
+        {item.value}
+      </SvgText>
+    </React.Fragment>
+  );
+})}
+
+
+              {/* CENTER HOLE */}
+              <Circle
+                cx={CENTER}
+                cy={CENTER}
+                r={RADIUS - STROKE_WIDTH}
+                fill="#FFFFFF"
+              />
+            </Svg>
+          </View>
+        )}
 
         {/* LEGEND */}
         <View style={styles.legendRow}>
-          {[
-            { color: '#2F6FED', label: 'Infrastructure' },
-            { color: '#E8892F', label: 'Service' },
-            { color: '#6EEB3B', label: 'Application' },
-          ].map(item => (
+          {chartData.map(item => (
             <View key={item.label} style={styles.legendItem}>
               <View
-                style={[styles.legendDot, { backgroundColor: item.color }]}
+                style={[
+                  styles.legendDot,
+                  { backgroundColor: item.color },
+                ]}
               />
               <Text style={styles.legendText}>{item.label}</Text>
             </View>
@@ -162,20 +290,12 @@ const MetricsScreen = ({ openMenu }: Props) => {
         </View>
       </View>
 
-      {/* INFO TOOLTIP POPUP */}
-      <Modal
-        visible={infoVisible}
-        transparent
-        animationType="fade"
-        onRequestClose={() => setInfoVisible(false)}
-      >
-        {/* Close on outside tap */}
+      {/* INFO */}
+      <Modal visible={infoVisible} transparent animationType="fade">
         <Pressable
           style={StyleSheet.absoluteFill}
           onPress={() => setInfoVisible(false)}
         />
-
-        {/* Tooltip */}
         <View style={styles.infoPopup}>
           <Text style={styles.infoText}>
             Statistics are calculated from the LIVE data
@@ -183,33 +303,30 @@ const MetricsScreen = ({ openMenu }: Props) => {
         </View>
       </Modal>
 
-
-      {/* FILTER MODAL */}
-      <Modal
-        visible={filterVisible}
-        transparent
-        animationType="fade"
-        onRequestClose={() => setFilterVisible(false)}
-      >
+      {/* FILTER */}
+      <Modal visible={filterVisible} transparent animationType="fade">
         <Pressable
           style={styles.backdrop}
           onPress={() => setFilterVisible(false)}
         />
-
         <View style={styles.filterPopup}>
-          {PRODUCT_TYPES.map(item => (
+          {Object.values(ProductType).map(p => (
             <TouchableOpacity
-              key={item}
+              key={p}
               style={styles.filterItem}
-              onPress={() => onSelectProduct(item)}
+              onPress={() => {
+                setSelectedProduct(p);
+                setFilterVisible(false);
+                loadMetrics(p);
+              }}
             >
               <Text
                 style={[
                   styles.filterText,
-                  item === selectedProduct && styles.selectedText,
+                  p === selectedProduct && styles.selectedText,
                 ]}
               >
-                {item}
+                {ProductTypeConfig[p].displayName}
               </Text>
             </TouchableOpacity>
           ))}
@@ -221,7 +338,7 @@ const MetricsScreen = ({ openMenu }: Props) => {
 
 export default MetricsScreen;
 
-/* ---------- STYLES ---------- */
+/* ================= STYLES ================= */
 const styles = StyleSheet.create({
   container: {
     flex: 1,
@@ -239,7 +356,6 @@ const styles = StyleSheet.create({
     marginHorizontal: 20,
     flexDirection: 'row',
     justifyContent: 'space-between',
-    alignItems: 'center',
   },
   title: {
     fontSize: 26,
@@ -250,7 +366,6 @@ const styles = StyleSheet.create({
     marginHorizontal: 20,
     flexDirection: 'row',
     justifyContent: 'space-between',
-    alignItems: 'center',
   },
   productText: {
     fontSize: 14,
@@ -263,8 +378,8 @@ const styles = StyleSheet.create({
     backgroundColor: '#FFFFFF',
     marginHorizontal: 20,
     marginTop: 20,
-    borderRadius: 14,
-    padding: 16,
+    borderRadius: 18,
+    padding: 20,
     elevation: 3,
   },
   date: {
@@ -293,14 +408,15 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: '700',
   },
-  chartContainer: {
+  chartWrapper: {
     alignItems: 'center',
-    marginVertical: 20,
+    marginVertical: 16,
   },
   legendRow: {
     flexDirection: 'row',
     justifyContent: 'center',
     gap: 20,
+    marginTop: 10,
   },
   legendItem: {
     flexDirection: 'row',
@@ -310,37 +426,23 @@ const styles = StyleSheet.create({
   legendDot: {
     width: 12,
     height: 12,
-    borderRadius: 3,
+    borderRadius: 6,
   },
   legendText: {
     fontSize: 13,
     color: '#374151',
   },
-
-
   infoPopup: {
     position: 'absolute',
-    top: 130,       // aligns near Product Type info icon
+    top: 130,
     right: 16,
-    maxWidth: 260,
     backgroundColor: '#8B8B8B',
-    paddingVertical: 10,
-    paddingHorizontal: 14,
+    padding: 12,
     borderRadius: 10,
-    shadowColor: '#000',
-    shadowOpacity: 0.25,
-    shadowRadius: 6,
-    elevation: 6,
   },
-  
   infoText: {
     color: '#FFFFFF',
-    fontSize: 14,
-    lineHeight: 18,
   },
-  
-
-
   backdrop: {
     ...StyleSheet.absoluteFillObject,
     backgroundColor: 'rgba(0,0,0,0.2)',
@@ -353,7 +455,6 @@ const styles = StyleSheet.create({
     backgroundColor: '#FFFFFF',
     borderRadius: 12,
     paddingVertical: 8,
-    elevation: 5,
   },
   filterItem: {
     paddingVertical: 10,

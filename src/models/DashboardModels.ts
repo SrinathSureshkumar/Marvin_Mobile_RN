@@ -40,6 +40,8 @@ export interface Summary {
 }
 
 export interface Tenant {
+  dea: boolean;
+  deaData: boolean;
   cid: string;
   tid: string;
   cName: string;

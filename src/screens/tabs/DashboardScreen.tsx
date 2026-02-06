@@ -10,7 +10,11 @@ import {
   ActivityIndicator,
 } from 'react-native';
 
-import { fetchDashboardData } from '../../api/marvinApi';
+import {
+  fetchDashboardData,
+  fetchDashboardByProduct,
+} from '../../api/marvinApi';
+
 import SideMenuIcon from '../../assets/sidemenu.svg';
 import SapLogo from '../../assets/logo_sap.svg';
 import CartImg from '../../assets/dashboard_cart_img.svg';
@@ -18,11 +22,33 @@ import FilterImg from '../../assets/dashboard_filter_img.svg';
 
 import { Tenant, Summary } from '../../models/DashboardModels';
 
+/* ✅ PRODUCT ENUM (Swift equivalent) */
+export enum ProductType {
+  C4C = 'c4c',
+  SSP = 'ssp',
+  CXAI = 'cxai',
+  CCV20 = 'ccv20',
+  SCV2 = 'scv2',
+  ALL = 'all',
+}
+
+export const ProductTypeConfig: Record<
+  ProductType,
+  { label: string }
+> = {
+  [ProductType.C4C]: { label: 'C4C' },
+  [ProductType.SSP]: { label: 'SSP' },
+  [ProductType.CXAI]: { label: 'CXAI' },
+  [ProductType.CCV20]: { label: 'CCV20' },
+  [ProductType.SCV2]: { label: 'SCV2' },
+  [ProductType.ALL]: { label: 'All' },
+};
+
+const PRODUCT_TYPES = Object.values(ProductType);
+
 type Props = {
   openMenu: () => void;
 };
-
-const PRODUCT_TYPES = ['C4C', 'SSP', 'CXAI', 'CCV20', 'SCV2', 'All'];
 
 type DashboardCardItem = {
   id: string;
@@ -42,17 +68,23 @@ const DashboardScreen = ({ openMenu }: Props) => {
   const [data, setData] = useState<DashboardCardItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [filterVisible, setFilterVisible] = useState(false);
-  const [selectedProduct, setSelectedProduct] = useState('All');
+  const [selectedProduct, setSelectedProduct] =
+    useState<ProductType>(ProductType.ALL);
 
   useEffect(() => {
-    loadDashboard();
+    loadDashboard(ProductType.ALL);
   }, []);
 
-  const loadDashboard = async () => {
+  /* ---------------- LOAD DASHBOARD ---------------- */
+  const loadDashboard = async (product: ProductType) => {
     setLoading(true);
 
     try {
-      const json = await fetchDashboardData();
+      const json =
+        product === ProductType.ALL
+          ? await fetchDashboardData()
+          : await fetchDashboardByProduct(product);
+
       const tenants: Tenant[] =
         json?.responseBody?.flatMap(p => p.responseBody) ?? [];
 
@@ -71,7 +103,6 @@ const DashboardScreen = ({ openMenu }: Props) => {
             storefrontScore: storefront,
             backofficeScore: backoffice,
 
-            // 🔑 LOGIC FLAGS (THIS IS THE FIX)
             summary: item.summary,
             briefExists: Boolean(item.brief?.length),
             hasAssignee: Boolean(item.assignee?.length),
@@ -82,13 +113,21 @@ const DashboardScreen = ({ openMenu }: Props) => {
 
       setData(normalized);
     } catch (e) {
-      console.log('Dashboard load error', e);
+      console.log('❌ Dashboard load error', e);
       setData([]);
     } finally {
       setLoading(false);
     }
   };
 
+  /* ---------------- PRODUCT SELECT ---------------- */
+  const onSelectProduct = (product: ProductType) => {
+    setSelectedProduct(product);
+    setFilterVisible(false);
+    loadDashboard(product);
+  };
+
+  /* ---------------- CARD ---------------- */
   const renderItem = ({ item }: { item: DashboardCardItem }) => (
     <View style={styles.card}>
       <View style={styles.cardHeader}>
@@ -112,7 +151,7 @@ const DashboardScreen = ({ openMenu }: Props) => {
         <Text>{item.backofficeScore}%</Text>
       </View>
 
-      {/* ✅ LIVE SUMMARY → ONLY IF summary EXISTS */}
+      {/* ✅ SHOW ONLY IF SUMMARY EXISTS */}
       {item.summary && (
         <TouchableOpacity style={styles.liveButton}>
           <Text style={styles.liveText}>Live Summary</Text>
@@ -123,6 +162,7 @@ const DashboardScreen = ({ openMenu }: Props) => {
 
   return (
     <View style={styles.container}>
+      {/* HEADER */}
       <View style={styles.headerRow}>
         <TouchableOpacity onPress={openMenu}>
           <SideMenuIcon width={28} height={28} />
@@ -130,6 +170,7 @@ const DashboardScreen = ({ openMenu }: Props) => {
         <SapLogo width={90} height={48} />
       </View>
 
+      {/* TITLE + FILTER */}
       <View style={styles.titleRow}>
         <Text style={styles.title}>Marvin Dashboard</Text>
         <TouchableOpacity onPress={() => setFilterVisible(true)}>
@@ -137,13 +178,18 @@ const DashboardScreen = ({ openMenu }: Props) => {
         </TouchableOpacity>
       </View>
 
+      {/* SUB HEADER */}
       <View style={styles.subHeader}>
         <Text>
-          Product Type: <Text style={styles.bold}>{selectedProduct}</Text>
+          Product Type:{' '}
+          <Text style={styles.bold}>
+            {ProductTypeConfig[selectedProduct].label}
+          </Text>
         </Text>
         <Text>Tenant Count: {data.length}</Text>
       </View>
 
+      {/* CONTENT */}
       {loading ? (
         <ActivityIndicator size="large" />
       ) : (
@@ -154,6 +200,7 @@ const DashboardScreen = ({ openMenu }: Props) => {
         />
       )}
 
+      {/* FILTER MODAL */}
       <Modal
         visible={filterVisible}
         transparent
@@ -164,6 +211,25 @@ const DashboardScreen = ({ openMenu }: Props) => {
           style={styles.backdrop}
           onPress={() => setFilterVisible(false)}
         />
+
+        <View style={styles.filterPopup}>
+          {PRODUCT_TYPES.map(p => (
+            <TouchableOpacity
+              key={p}
+              style={styles.filterItem}
+              onPress={() => onSelectProduct(p)}
+            >
+              <Text
+                style={[
+                  styles.filterText,
+                  p === selectedProduct && styles.selectedText,
+                ]}
+              >
+                {ProductTypeConfig[p].label}
+              </Text>
+            </TouchableOpacity>
+          ))}
+        </View>
       </Modal>
     </View>
   );
@@ -171,9 +237,10 @@ const DashboardScreen = ({ openMenu }: Props) => {
 
 export default DashboardScreen;
 
-/* STYLES — UNCHANGED */
+/* ================= STYLES (UNCHANGED) ================= */
 const styles = StyleSheet.create({
   container: { flex: 1, paddingTop: 120, paddingHorizontal: 16 },
+
   headerRow: {
     position: 'absolute',
     top: 50,
@@ -182,29 +249,36 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     gap: 32,
   },
+
   titleRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     marginBottom: 12,
   },
+
   title: { fontSize: 22, fontWeight: '700' },
+
   subHeader: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     marginBottom: 16,
   },
+
   bold: { fontWeight: '700' },
+
   card: {
     backgroundColor: '#FFF',
     borderRadius: 12,
     padding: 16,
     marginBottom: 12,
   },
+
   cardHeader: {
     flexDirection: 'row',
     alignItems: 'center',
     marginBottom: 12,
   },
+
   iconCircle: {
     width: 40,
     height: 40,
@@ -214,13 +288,16 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     marginRight: 12,
   },
+
   storeTitle: { fontSize: 16, fontWeight: '600' },
   storeSub: { color: '#6B7280' },
+
   cardRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     marginTop: 4,
   },
+
   liveButton: {
     marginTop: 10,
     backgroundColor: '#0A6ED1',
@@ -228,9 +305,36 @@ const styles = StyleSheet.create({
     borderRadius: 8,
     alignItems: 'center',
   },
+
   liveText: { color: '#FFF', fontWeight: '600' },
+
   backdrop: {
     ...StyleSheet.absoluteFillObject,
     backgroundColor: 'rgba(0,0,0,0.2)',
+  },
+
+  filterPopup: {
+    position: 'absolute',
+    top: 190,
+    right: 16,
+    width: 160,
+    backgroundColor: '#FFFFFF',
+    borderRadius: 12,
+    paddingVertical: 8,
+    elevation: 5,
+  },
+
+  filterItem: {
+    paddingVertical: 10,
+    paddingHorizontal: 16,
+  },
+
+  filterText: {
+    fontSize: 16,
+  },
+
+  selectedText: {
+    fontWeight: '700',
+    color: '#0A6ED1',
   },
 });
