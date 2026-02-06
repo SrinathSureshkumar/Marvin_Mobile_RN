@@ -79,7 +79,7 @@ const SideMenu = ({ visible, onClose, onNavigate }: Props) => {
         <MenuItem
           label="Catchpoint Stackmap"
           Icon={StackmapIcon}
-          onPress={() => onNavigate('CatchpointStackmap')}
+          onPress={() => onNavigate('Catchpoint')}
         />
 
         <View style={styles.divider} />
