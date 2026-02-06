@@ -7,7 +7,7 @@ import { CatchpointSonarResponse } from '../models/CatchpointSonarModels';
 
 const BASE_URL = Platform.OS === 'ios' ? 'http://127.0.0.1:3000' : 'http://10.0.2.2:3000';
 
-const DASHBOARD_URL = `${BASE_URL}/api/get-payload-all-products`;
+const DASHBOARD_URL = `${BASE_URL}/demo/api/get-payload-all-products`;
 
 export const fetchDashboardData = async (): Promise<DashboardResponse> => {
   try {
@@ -26,7 +26,7 @@ export const fetchDashboardData = async (): Promise<DashboardResponse> => {
 };
 
 
-const STACKMAP_URL = `${BASE_URL}/api/catchpoint-stackmap`;
+const STACKMAP_URL = `${BASE_URL}/demo/api/catchpoint-stackmap`;
 
 export const fetchCatchpointStackMap =
   async (): Promise<CatchpointStackMapResponse> => {
@@ -45,11 +45,11 @@ export const fetchCatchpointStackMap =
   };
 
 
-  const ISP_URL =
-  `${BASE_URL}/api/catchpoint?key=CATCHPOINT_CCV20_INTERNETWEATHER_ISPINCIDENTS`;
+const ISP_URL =
+  `${BASE_URL}/demo/api/catchpoint?key=CATCHPOINT_CCV20_INTERNETWEATHER_ISPINCIDENTS`;
 
 const SERVICE_URL =
-  `${BASE_URL}/api/catchpoint?key=CATCHPOINT_CCV20_INTERNETWEATHER_SERVICEINCIDENTS`;
+  `${BASE_URL}/demo/api/catchpoint?key=CATCHPOINT_CCV20_INTERNETWEATHER_SERVICEINCIDENTS`;
 
 export type SonarType = 'ISP' | 'SERVICE';
 
