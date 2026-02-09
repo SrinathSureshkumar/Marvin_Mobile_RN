@@ -168,6 +168,7 @@ const CatchpointSonarScreen = ({ openMenu }: Props) => {
           <SideMenuIcon width={26} height={26} />
         </TouchableOpacity>
         <SapLogo width={90} height={48} />
+        <Text>Hello, User</Text>
       </View>
 
       <Text style={styles.title}>Catchpoint Sonar</Text>
@@ -224,7 +225,7 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     paddingTop: 60,
-    backgroundColor: '#FFFFFF',
+    backgroundColor: '#F5F6F8',
   },
 
   loader: {
@@ -238,6 +239,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     paddingHorizontal: 20,
     gap: 20,
+    justifyContent: 'space-between',
   },
 
   title: {

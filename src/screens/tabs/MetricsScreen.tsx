@@ -162,6 +162,7 @@ const MetricsScreen = ({ openMenu }: Props) => {
           <SideMenuIcon width={26} height={26} />
         </TouchableOpacity>
         <SapLogo width={90} height={48} />
+        <Text>Hello, User</Text>
       </View>
 
       {/* TITLE */}
@@ -350,6 +351,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     paddingHorizontal: 20,
     gap: 24,
+    justifyContent: 'space-between',
   },
   titleRow: {
     marginTop: 24,

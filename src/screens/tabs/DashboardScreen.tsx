@@ -168,6 +168,7 @@ const DashboardScreen = ({ openMenu }: Props) => {
           <SideMenuIcon width={28} height={28} />
         </TouchableOpacity>
         <SapLogo width={90} height={48} />
+        <Text>Hello, User</Text>
       </View>
 
       {/* TITLE + FILTER */}
@@ -247,7 +248,10 @@ const styles = StyleSheet.create({
     left: 20,
     right: 20,
     flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
     gap: 32,
+    marginTop: 10
   },
 
   titleRow: {

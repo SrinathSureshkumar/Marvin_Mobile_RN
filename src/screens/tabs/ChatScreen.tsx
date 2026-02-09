@@ -118,6 +118,7 @@ const ChatScreen = ({ openMenu }: Props) => {
           <SideMenuIcon width={28} height={28} />
         </TouchableOpacity>
         <SapLogo width={90} height={48} />
+        <Text>Hello, User</Text>
       </View>
 
       <FlatList
@@ -167,6 +168,8 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     gap: 32,
     zIndex: 10,
+    justifyContent: 'space-between',
+    marginTop: 10
   },
 
   content: {
