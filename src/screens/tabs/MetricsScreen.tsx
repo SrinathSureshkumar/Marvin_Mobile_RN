@@ -165,6 +165,8 @@ const MetricsScreen = ({ openMenu }: Props) => {
         <Text>Hello, User</Text>
       </View>
 
+      <View style={styles.dividerToolbar} />
+
       {/* TITLE */}
       <View style={styles.titleRow}>
         <Text style={styles.title}>Metrics</Text>
@@ -354,7 +356,6 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
   },
   titleRow: {
-    marginTop: 24,
     marginHorizontal: 20,
     flexDirection: 'row',
     justifyContent: 'space-between',
@@ -382,8 +383,17 @@ const styles = StyleSheet.create({
     marginTop: 20,
     borderRadius: 18,
     padding: 20,
-    elevation: 3,
+  
+    /* 🔥 ANDROID 3D */
+    elevation: 8,
+  
+    /* 🔥 iOS 3D */
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 6 },
+    shadowOpacity: 0.18,
+    shadowRadius: 8,
   },
+  
   date: {
     fontSize: 18,
     fontWeight: '700',
@@ -392,6 +402,12 @@ const styles = StyleSheet.create({
     fontSize: 13,
     color: '#6B7280',
     marginTop: 4,
+  },
+  dividerToolbar: {
+    height: 1,
+    backgroundColor: '#c2c2c2',
+    marginVertical: 8,
+    marginHorizontal: 16,
   },
   divider: {
     height: 1,
@@ -405,6 +421,7 @@ const styles = StyleSheet.create({
   count: {
     fontSize: 24,
     fontWeight: '700',
+    color: 'red'
   },
   overview: {
     fontSize: 16,

@@ -119,7 +119,6 @@ const CatchpointSonarScreen = ({ openMenu }: Props) => {
               No error types available
             </Text>
 
-            {/* Regions */}
             {item.regions?.length > 0 && (
               <View style={styles.row}>
                 <Text style={styles.label}>Regions</Text>
@@ -129,7 +128,6 @@ const CatchpointSonarScreen = ({ openMenu }: Props) => {
               </View>
             )}
 
-            {/* Locations */}
             {item.locations?.length > 0 && (
               <View style={styles.row}>
                 <Text style={styles.label}>Locations</Text>
@@ -139,7 +137,6 @@ const CatchpointSonarScreen = ({ openMenu }: Props) => {
               </View>
             )}
 
-            {/* Severity */}
             <View style={styles.row}>
               <Text style={styles.label}>Severity Score</Text>
               <Text style={styles.valueRight}>
@@ -170,6 +167,8 @@ const CatchpointSonarScreen = ({ openMenu }: Props) => {
         <SapLogo width={90} height={48} />
         <Text>Hello, User</Text>
       </View>
+
+      <View style={styles.divider} />
 
       <Text style={styles.title}>Catchpoint Sonar</Text>
 
@@ -205,6 +204,7 @@ const CatchpointSonarScreen = ({ openMenu }: Props) => {
         horizontal
         pagingEnabled
         scrollEnabled={false}
+        showsHorizontalScrollIndicator={false}
       >
         <View style={styles.page}>
           {ispData.map(renderIncident)}
@@ -225,7 +225,7 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     paddingTop: 60,
-    backgroundColor: '#F5F6F8',
+    backgroundColor: '#F3F4F6',
   },
 
   loader: {
@@ -238,42 +238,44 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     paddingHorizontal: 20,
-    gap: 20,
     justifyContent: 'space-between',
+    marginBottom: 8,
   },
 
   title: {
-    fontSize: 22,
+    fontSize: 24,
     fontWeight: '700',
-    marginTop: 24,
     marginLeft: 20,
-    color: '#111827',
+    marginBottom: 12,
+    color: '#1F2937',
   },
 
   /* TABS */
   tabs: {
     flexDirection: 'row',
-    marginTop: 16,
     marginHorizontal: 20,
     gap: 12,
+    marginBottom: 16,
   },
 
   tab: {
-    paddingVertical: 8,
-    paddingHorizontal: 16,
-    borderRadius: 10,
-    borderWidth: 2,
-    borderColor: 'transparent',
+    paddingVertical: 10,
+    paddingHorizontal: 18,
+    borderRadius: 14,
+    backgroundColor: '#FFFFFF',
+    borderWidth: 1,
+    borderColor: '#E5E7EB',
   },
 
   tabActive: {
+    backgroundColor: '#EEF4FF',
     borderColor: '#3B82F6',
   },
 
   tabText: {
     fontSize: 14,
     fontWeight: '600',
-    color: '#6B7280',
+    color: '#374151',
   },
 
   tabTextActive: {
@@ -283,26 +285,33 @@ const styles = StyleSheet.create({
   /* PAGES */
   page: {
     width,
-    padding: 20,
+    paddingHorizontal: 20,
+    paddingBottom: 20,
   },
 
   /* CARD */
   card: {
     backgroundColor: '#FFFFFF',
-    borderRadius: 14,
-    borderWidth: 1,
-    borderColor: '#E5E7EB',
+    borderRadius: 16,
     marginBottom: 16,
-    overflow: 'hidden',
+
+    elevation: 6,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.12,
+    shadowRadius: 6,
   },
 
   cardHeader: {
-    backgroundColor: '#EFF6FF',
+    backgroundColor: '#F0F6FF',
     paddingHorizontal: 16,
     paddingVertical: 14,
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
+    borderTopLeftRadius: 16,
+    borderTopRightRadius: 16,
+    overflow: 'hidden',
   },
 
   cardTitle: {
@@ -313,27 +322,28 @@ const styles = StyleSheet.create({
 
   cardBody: {
     paddingHorizontal: 16,
-    paddingBottom: 16,
+    paddingBottom: 18,
+    paddingTop: 6,
   },
 
   sectionLabel: {
-    fontSize: 13,
-    fontWeight: '600',
-    color: '#6B7280',
+    fontSize: 15,
+    fontWeight: "500",
+    color: '#1D4ED8',
     marginTop: 12,
   },
 
   valueBold: {
-    fontSize: 14,
-    fontWeight: '600',
+    fontSize: 16,
+    fontWeight: '700',
     marginTop: 6,
-    color: '#111827',
+    color: '#1D4ED8',
   },
 
   muted: {
-    fontSize: 13,
-    color: '#6B7280',
-    marginTop: 4,
+    fontSize: 15,
+    color: '#1D4ED8',
+    marginTop: 6,
   },
 
   row: {
@@ -344,15 +354,21 @@ const styles = StyleSheet.create({
   },
 
   label: {
-    fontSize: 13,
-    color: '#6B7280',
+    fontSize: 15,
+    color: '#1D4ED8',
   },
 
   valueRight: {
-    fontSize: 13,
+    fontSize: 15,
     fontWeight: '600',
-    color: '#111827',
+    color: '#1D4ED8',
     textAlign: 'right',
     maxWidth: '60%',
+  },
+  divider: {
+    height: 1,
+    backgroundColor: '#c2c2c2',
+    marginVertical: 8,
+    marginHorizontal: 16,
   },
 });

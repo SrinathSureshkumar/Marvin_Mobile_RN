@@ -5,7 +5,6 @@ import {
   TouchableOpacity,
   StyleSheet,
   Image,
-  ScrollView,
   TextInput,
   ActivityIndicator,
   Linking,
@@ -25,6 +24,9 @@ import SearchIcon from '../../assets/search_icon.svg';
 type Props = {
   openMenu: () => void;
 };
+
+/* 🔗 GLOBAL STACK MAPS URL */
+let STACK_MAPS_URL = 'https://catchpoint.com/stack-maps';
 
 const ChatScreen = ({ openMenu }: Props) => {
   const [searchText, setSearchText] = useState('');
@@ -54,6 +56,7 @@ const ChatScreen = ({ openMenu }: Props) => {
 
   const renderItem = ({ item }: { item: CatchpointStackMapItem }) => {
     const expanded = expandedTenant === item.tenant;
+    STACK_MAPS_URL = item.dashboardLink;
 
     return (
       <View style={styles.card}>
@@ -65,9 +68,7 @@ const ChatScreen = ({ openMenu }: Props) => {
 
         <View style={styles.cardFooter}>
           <View style={styles.companyRow}>
-            <Text style={styles.companyName}>
-              {item.displayName}
-            </Text>
+            <Text style={styles.companyName}>{item.displayName}</Text>
 
             <TouchableOpacity
               onPress={() =>
@@ -80,9 +81,7 @@ const ChatScreen = ({ openMenu }: Props) => {
 
           {expanded && (
             <View style={styles.metaContainer}>
-              <Text style={styles.metaText}>
-                Tenant: {item.tenant}
-              </Text>
+              <Text style={styles.metaText}>Tenant: {item.tenant}</Text>
               <Text style={styles.metaText}>
                 Last updated: {item.lastUpdateUTC}
               </Text>
@@ -90,12 +89,10 @@ const ChatScreen = ({ openMenu }: Props) => {
           )}
 
           <TouchableOpacity
-            style={styles.button}
+            style={styles.cardButton}
             onPress={() => Linking.openURL(item.dashboardLink)}
           >
-            <Text style={styles.buttonText}>
-              View live stack map
-            </Text>
+            <Text style={styles.buttonText}>View live stack map</Text>
           </TouchableOpacity>
         </View>
       </View>
@@ -104,7 +101,7 @@ const ChatScreen = ({ openMenu }: Props) => {
 
   if (loading) {
     return (
-      <View style={styles.container}>
+      <View style={styles.loaderContainer}>
         <ActivityIndicator size="large" />
       </View>
     );
@@ -112,38 +109,46 @@ const ChatScreen = ({ openMenu }: Props) => {
 
   return (
     <View style={styles.container}>
-      {/* HEADER */}
+      {/* 🔒 FIXED HEADER */}
       <View style={styles.headerRow}>
         <TouchableOpacity onPress={openMenu}>
           <SideMenuIcon width={28} height={28} />
         </TouchableOpacity>
         <SapLogo width={90} height={48} />
-        <Text>Hello, User</Text>
+        <Text style={styles.userText}>Hello, User</Text>
       </View>
 
+      <View style={styles.divider} />
+
+      {/* 🔒 FIXED TITLE + LINK */}
+      <View style={styles.titleAndLink}>
+        <Text style={styles.title}>Catchpoint</Text>
+
+        <TouchableOpacity onPress={() => Linking.openURL(STACK_MAPS_URL)}>
+          <Text style={styles.link}>Visit available stack maps</Text>
+        </TouchableOpacity>
+      </View>
+
+      {/* 🔒 FIXED SEARCH */}
+      <View style={styles.searchWrapper}>
+        <View style={styles.searchContainer}>
+          <SearchIcon width={18} height={18} />
+          <TextInput
+            value={searchText}
+            onChangeText={setSearchText}
+            placeholder="Search"
+            style={styles.searchInput}
+          />
+        </View>
+      </View>
+
+      {/* 📜 ONLY CARDS SCROLL */}
       <FlatList
         data={filteredItems}
         keyExtractor={item => item.tenant}
         renderItem={renderItem}
-        contentContainerStyle={styles.content}
-        ListHeaderComponent={
-          <>
-            <View style={styles.titleAndLink}>
-              <Text style={styles.title}>Catchpoint</Text>
-              <Text style={styles.link}>Visit available stack maps</Text>
-            </View>
-
-            <View style={styles.searchContainer}>
-              <SearchIcon width={18} height={18} />
-              <TextInput
-                value={searchText}
-                onChangeText={setSearchText}
-                placeholder="Search"
-                style={styles.searchInput}
-              />
-            </View>
-          </>
-        }
+        showsVerticalScrollIndicator={false}
+        contentContainerStyle={styles.listContent}
       />
     </View>
   );
@@ -151,93 +156,59 @@ const ChatScreen = ({ openMenu }: Props) => {
 
 export default ChatScreen;
 
-
 /* ---------- STYLES ---------- */
+
 const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: '#F5F6F8',
   },
 
-  headerRow: {
-    position: 'absolute',
-    top: 50,
-    left: 20,
-    right: 20,
-    flexDirection: 'row',
+  loaderContainer: {
+    flex: 1,
+    justifyContent: 'center',
     alignItems: 'center',
-    gap: 32,
-    zIndex: 10,
-    justifyContent: 'space-between',
-    marginTop: 10
   },
 
-  content: {
-    paddingTop: 130,
+  headerRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
     paddingHorizontal: 20,
+    paddingTop: 50,
+    paddingBottom: 12,
+    backgroundColor: '#F5F6F8',
+  },
+
+  userText: {
+    fontSize: 14,
+    fontWeight: '500',
+  },
+
+  titleAndLink: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    paddingHorizontal: 20,
+    marginBottom: 12,
   },
 
   title: {
     fontSize: 24,
     fontWeight: '700',
-    marginBottom: 16,
   },
+
   link: {
     color: '#0070F2',
     fontSize: 16,
     fontWeight: '600',
     marginTop: 4,
-    alignItems: 'center'
-  },
-  titleAndLink: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-  },
-  card: {
-    backgroundColor: '#FFF',
-    borderRadius: 16,
-    padding: 16,
-    elevation: 3,
-    marginVertical: 10
   },
 
-  stackImage: {
-    width: '100%',
-    height: 140,
-    marginBottom: 16,
+  searchWrapper: {
+    paddingHorizontal: 20,
+    marginBottom: 8,
   },
 
-  cardFooter: {
-    alignItems: 'flex-start',
-  },
-
-  companyName: {
-    fontSize: 18,
-    fontWeight: '600',
-    marginBottom: 12,
-  },
-
-  button: {
-    backgroundColor: '#2F6DF6',
-    paddingVertical: 12,
-    paddingHorizontal: 24,
-    borderRadius: 10,
-    alignItems: 'center',
-    alignSelf: 'center',
-  },
-
-  buttonText: {
-    color: '#FFF',
-    fontSize: 16,
-    fontWeight: '600',
-  },
-  companyRow: {
-    width: '100%',
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: 6,
-  },
   searchContainer: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -245,7 +216,6 @@ const styles = StyleSheet.create({
     borderRadius: 12,
     paddingHorizontal: 14,
     height: 48,
-    marginBottom: 16,
     gap: 10,
     elevation: 2,
     borderWidth: 1,
@@ -258,15 +228,81 @@ const styles = StyleSheet.create({
     color: '#111827',
   },
 
+  listContent: {
+    paddingHorizontal: 20,
+    paddingBottom: 24,
+  },
+
+  card: {
+    backgroundColor: '#FFF',
+    borderRadius: 16,
+    padding: 16,
+    marginVertical: 10,
+  
+    /* ANDROID */
+    elevation: 8,
+  
+    /* IOS */
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 6 },
+    shadowOpacity: 0.18,
+    shadowRadius: 8,
+  },
+  
+
+  stackImage: {
+    width: '100%',
+    height: 140,
+    marginBottom: 16,
+  },
+
+  cardFooter: {
+    alignItems: 'flex-start',
+  },
+
+  companyRow: {
+    width: '100%',
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 6,
+  },
+
+  companyName: {
+    fontSize: 18,
+    fontWeight: '600',
+  },
+
   metaContainer: {
     marginBottom: 12,
   },
-  
+
   metaText: {
     fontSize: 14,
     color: '#6B7280',
     marginTop: 4,
   },
-  
 
+  cardButton: {
+    backgroundColor: '#2F6DF6',
+    paddingVertical: 12,
+    paddingHorizontal: 24,
+    borderRadius: 10,
+    alignItems: 'center',
+    alignSelf: 'center',
+    marginTop: 8,
+  },
+
+  buttonText: {
+    color: '#FFF',
+    fontSize: 16,
+    fontWeight: '600',
+  },
+
+  divider: {
+    height: 1,
+    backgroundColor: '#c2c2c2',
+    marginVertical: 8,
+    marginHorizontal: 16,
+  },
 });
