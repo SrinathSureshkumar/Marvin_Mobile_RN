@@ -22,9 +22,8 @@ import SapLogo from '../../assets/logo_sap.svg';
 import TenentImgBlue from '../../assets/dashboard_tenent_img_blue.svg';
 import TenentImgYellow from '../../assets/dashboard_tenent_img_yellow.svg';
 import TenentImgRed from '../../assets/dashboard_tenent_img_red.svg';
-
 import FilterImg from '../../assets/dashboard_filter_img.svg';
-
+import UserAvatar from '../../assets/user_avatar.svg';
 import { Tenant, Summary } from '../../models/DashboardModels';
 
 /* ================= FILTER LOGIC ================= */
@@ -184,18 +183,23 @@ const DashboardScreen = ({ openMenu }: Props) => {
     <View style={styles.container}>
       {/* HEADER */}
       <View style={styles.headerRow}>
-        <TouchableOpacity onPress={openMenu}>
-          <SideMenuIcon width={28} height={28} />
-        </TouchableOpacity>
-        <SapLogo width={90} height={48} />
-        <Text>Hello,{'\n'}User</Text>
+        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 12 }}>
+          <TouchableOpacity onPress={openMenu}>
+            <SideMenuIcon width={28} height={28} />
+          </TouchableOpacity>
+          <SapLogo width={80} height={48} />
+        </View>
+        <Text style={{ fontSize: 24, fontWeight: 'bold', marginRight: 60 }}>Marvin</Text>
+        <View style={styles.avatarCircle}>
+          <UserAvatar width={24} height={24} />
+        </View>
       </View>
 
       <View style={styles.divider} />
 
       {/* TITLE + FILTER */}
       <View style={styles.titleRow}>
-        <Text style={styles.title}>Marvin Dashboard</Text>
+        <Text style={styles.title}>Dashboard</Text>
         <TouchableOpacity onPress={() => setFilterVisible(true)}>
           <FilterImg width={24} height={24} />
         </TouchableOpacity>
@@ -339,6 +343,15 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
+  },
+
+  avatarCircle: {
+    width: 40,
+    height: 40,
+    borderRadius: 18,
+    backgroundColor: '#E0F2FE', // light blue
+    alignItems: 'center',
+    justifyContent: 'center',
   },
 
   titleRow: {
@@ -529,7 +542,7 @@ const styles = StyleSheet.create({
     color: '#111827',
     textAlign: 'right',
   },
-  
+
 
   modalLink: {
     width: '100%',
@@ -574,13 +587,13 @@ const styles = StyleSheet.create({
   modalSummaryBlock: {
     marginTop: 8,
   },
-  
+
   modalSummaryText: {
     marginTop: 6,
     fontSize: 14,
     lineHeight: 20,
     color: '#111827',
   },
-  
+
 
 });

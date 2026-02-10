@@ -16,6 +16,7 @@ import SideMenuIcon from '../../assets/sidemenu.svg';
 import SapLogo from '../../assets/logo_sap.svg';
 import FilterIcon from '../../assets/dashboard_filter_img.svg';
 import InfoIcon from '../../assets/metrics_info.svg';
+import UserAvatar from '../../assets/user_avatar.svg';
 
 /* API */
 import {
@@ -158,11 +159,16 @@ const MetricsScreen = ({ openMenu }: Props) => {
     <View style={styles.container}>
       {/* HEADER */}
       <View style={styles.headerRow}>
+        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 12 }}>
         <TouchableOpacity onPress={openMenu}>
-          <SideMenuIcon width={26} height={26} />
+          <SideMenuIcon width={28} height={28} />
         </TouchableOpacity>
-        <SapLogo width={90} height={48} />
-        <Text>Hello,{'\n'}User</Text>
+        <SapLogo width={80} height={48} />
+        </View>
+        <Text style={{ fontSize: 24, fontWeight: 'bold', marginRight: 60 }}>Marvin</Text>
+        <View style={styles.avatarCircle}>
+          <UserAvatar width={24} height={24} />
+        </View>
       </View>
 
       <View style={styles.dividerToolbar} />
@@ -354,6 +360,14 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
     gap: 24,
     justifyContent: 'space-between',
+  },
+  avatarCircle: {
+    width: 40,
+    height: 40,
+    borderRadius: 18,
+    backgroundColor: '#E0F2FE', // light blue
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   titleRow: {
     marginHorizontal: 20,

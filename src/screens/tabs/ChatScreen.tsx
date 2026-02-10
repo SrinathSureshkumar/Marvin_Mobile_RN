@@ -20,6 +20,7 @@ import SideMenuIcon from '../../assets/sidemenu.svg';
 import SapLogo from '../../assets/logo_sap.svg';
 import MoreIcon from '../../assets/more.svg';
 import SearchIcon from '../../assets/search_icon.svg';
+import UserAvatar from '../../assets/user_avatar.svg';
 
 type Props = {
   openMenu: () => void;
@@ -111,11 +112,16 @@ const ChatScreen = ({ openMenu }: Props) => {
     <View style={styles.container}>
       {/* 🔒 FIXED HEADER */}
       <View style={styles.headerRow}>
+        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 12 }}>
         <TouchableOpacity onPress={openMenu}>
           <SideMenuIcon width={28} height={28} />
         </TouchableOpacity>
-        <SapLogo width={90} height={48} />
-        <Text>Hello,{'\n'}User</Text>
+        <SapLogo width={80} height={48} />
+        </View>
+        <Text style={{ fontSize: 24, fontWeight: 'bold', marginRight: 60 }}>Marvin</Text>
+        <View style={styles.avatarCircle}>
+          <UserAvatar width={24} height={24} />
+        </View>
       </View>
 
       <View style={styles.divider} />
@@ -178,6 +184,14 @@ const styles = StyleSheet.create({
     paddingTop: 60,
     paddingBottom: 12,
     backgroundColor: '#F5F6F8',
+  },
+  avatarCircle: {
+    width: 40,
+    height: 40,
+    borderRadius: 18,
+    backgroundColor: '#E0F2FE', // light blue
+    alignItems: 'center',
+    justifyContent: 'center',
   },
 
   titleAndLink: {
