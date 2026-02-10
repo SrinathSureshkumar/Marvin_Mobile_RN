@@ -27,6 +27,13 @@ import FilterImg from '../../assets/dashboard_filter_img.svg';
 
 import { Tenant, Summary } from '../../models/DashboardModels';
 
+/* ================= FILTER LOGIC ================= */
+const filterItemsWithNonZeroScore = (items: Tenant[]): Tenant[] => {
+  return items.filter(
+    item => !item.ars?.every(ars => ars.score === 0)
+  );
+};
+
 /* ================= PRODUCT ENUM ================= */
 export enum ProductType {
   C4C = 'c4c',
@@ -52,7 +59,6 @@ type Props = {
   openMenu: () => void;
 };
 
-/* ================= CARD ITEM ================= */
 type DashboardCardItem = {
   id: string;
   cid: string;
@@ -74,15 +80,17 @@ const DashboardScreen = ({ openMenu }: Props) => {
   const [selectedProduct, setSelectedProduct] =
     useState<ProductType>(ProductType.ALL);
 
-  /* 🔥 LIVE SUMMARY STATE (THIS WAS MISSING) */
+  /* 🔥 LIVE SUMMARY STATE */
   const [summaryModalVisible, setSummaryModalVisible] = useState(false);
   const [activeSummary, setActiveSummary] = useState<Summary | null>(null);
+
+  const dynatraceLink =
+    'https://amer01.cluster.observability.cloud.sap/e/ocas-dynatrace-p1/login';
 
   useEffect(() => {
     loadDashboard(ProductType.ALL);
   }, []);
 
-  /* ================= LOAD DASHBOARD ================= */
   const loadDashboard = async (product: ProductType) => {
     setLoading(true);
     try {
@@ -94,22 +102,22 @@ const DashboardScreen = ({ openMenu }: Props) => {
       const tenants: Tenant[] =
         json?.responseBody?.flatMap(p => p.responseBody) ?? [];
 
-      const normalized: DashboardCardItem[] = tenants.map((item, index) => {
-        const showLiveSummary =
-          Boolean(item.summary?.summary) &&
-          Boolean(item.summary?.slack_thread_link) &&
-          Boolean(item.summary?.tenant_link);
+      const filteredTenants = filterItemsWithNonZeroScore(tenants);
 
-        return {
+      const normalized: DashboardCardItem[] = filteredTenants.map(
+        (item, index) => ({
           id: `${item.tid}-${index}`,
           cid: item.cid,
           cName: item.cName,
           ars: item.ars ?? [],
           sr: item.sr ?? false,
           summary: item.summary,
-          showLiveSummary,
-        };
-      });
+          showLiveSummary:
+            Boolean(item.summary?.summary) &&
+            Boolean(item.summary?.slack_thread_link) &&
+            Boolean(item.summary?.tenant_link),
+        })
+      );
 
       setData(normalized);
     } finally {
@@ -117,7 +125,6 @@ const DashboardScreen = ({ openMenu }: Props) => {
     }
   };
 
-  /* ================= STATUS HELPERS ================= */
   const isRed = (item: DashboardCardItem) => item.sr === true;
   const isYellow = (item: DashboardCardItem) =>
     item.ars.some(a => a.score > 84);
@@ -140,53 +147,38 @@ const DashboardScreen = ({ openMenu }: Props) => {
     loadDashboard(p);
   };
 
-  /* ================= CARD ================= */
-  const renderItem = ({ item }: { item: DashboardCardItem }) => {
-    const issueDomains = item.ars
-      .map(a => a.issueDomain)
-      .filter(d => d && d.trim().length > 0) as string[];
-
-    return (
-      <View style={[styles.card, getCardStyle(item)]}>
-        <View style={styles.cardHeader}>
-          <View style={styles.iconCircle}>{getTenantIcon(item)}</View>
-          <View>
-            <Text style={styles.storeTitle}>{item.cName}</Text>
-            <Text style={styles.storeSub}>{item.cid}</Text>
-          </View>
+  const renderItem = ({ item }: { item: DashboardCardItem }) => (
+    <View style={[styles.card, getCardStyle(item)]}>
+      <View style={styles.cardHeader}>
+        <View style={styles.iconCircle}>{getTenantIcon(item)}</View>
+        <View>
+          <Text style={styles.storeTitle}>{item.cName}</Text>
+          <Text style={styles.storeSub}>{item.cid}</Text>
         </View>
-
-        {item.ars.map((arsItem, index) => (
-          <View key={`${arsItem.name}-${index}`} style={styles.cardRow}>
-            <Text style={styles.arsLabel}>
-              {arsItem.name} risk score
-            </Text>
-            <Text style={styles.arsValue}>{arsItem.score}%</Text>
-          </View>
-        ))}
-
-        {item.showLiveSummary && (
-          <>
-            <TouchableOpacity
-              style={styles.liveButton}
-              onPress={() => {
-                setActiveSummary(item.summary!);
-                setSummaryModalVisible(true);
-              }}
-            >
-              <Text style={styles.liveText}>Live Summary</Text>
-            </TouchableOpacity>
-
-            {issueDomains.length > 0 && (
-              <Text style={styles.issueDomainText}>
-                ARS : {issueDomains.join(', ')}
-              </Text>
-            )}
-          </>
-        )}
       </View>
-    );
-  };
+
+      {item.ars.map((arsItem, index) => (
+        <View key={index} style={styles.cardRow}>
+          <Text style={styles.arsLabel}>
+            {arsItem.name} risk score
+          </Text>
+          <Text style={styles.arsValue}>{arsItem.score}%</Text>
+        </View>
+      ))}
+
+      {item.showLiveSummary && (
+        <TouchableOpacity
+          style={styles.liveButton}
+          onPress={() => {
+            setActiveSummary(item.summary!);
+            setSummaryModalVisible(true);
+          }}
+        >
+          <Text style={styles.liveText}>Live Summary</Text>
+        </TouchableOpacity>
+      )}
+    </View>
+  );
 
   return (
     <View style={styles.container}>
@@ -196,7 +188,7 @@ const DashboardScreen = ({ openMenu }: Props) => {
           <SideMenuIcon width={28} height={28} />
         </TouchableOpacity>
         <SapLogo width={90} height={48} />
-        <Text>Hello, User</Text>
+        <Text>Hello,{'\n'}User</Text>
       </View>
 
       <View style={styles.divider} />
@@ -209,6 +201,7 @@ const DashboardScreen = ({ openMenu }: Props) => {
         </TouchableOpacity>
       </View>
 
+      {/* PRODUCT TYPE + TENANT COUNT */}
       <View style={styles.subHeader}>
         <Text>
           Product Type:{' '}
@@ -225,7 +218,7 @@ const DashboardScreen = ({ openMenu }: Props) => {
         <FlatList data={data} renderItem={renderItem} />
       )}
 
-      {/* ================= LIVE SUMMARY MODAL ================= */}
+      {/* ================= LIVE SUMMARY MODAL (ADDED BACK) ================= */}
       <Modal visible={summaryModalVisible} transparent animationType="fade">
         <Pressable
           style={styles.modalBackdrop}
@@ -233,7 +226,6 @@ const DashboardScreen = ({ openMenu }: Props) => {
         />
 
         <View style={styles.modalCard}>
-          {/* Header */}
           <View style={styles.modalHeader}>
             <Text style={styles.modalTitle}>Latest Updates</Text>
             <TouchableOpacity onPress={() => setSummaryModalVisible(false)}>
@@ -241,7 +233,6 @@ const DashboardScreen = ({ openMenu }: Props) => {
             </TouchableOpacity>
           </View>
 
-          {/* Content rows */}
           <View style={styles.modalRow}>
             <Text style={styles.modalLabel}>Customer Name</Text>
             <Text style={styles.modalValueEnd}>
@@ -262,11 +253,9 @@ const DashboardScreen = ({ openMenu }: Props) => {
             </TouchableOpacity>
           </View>
 
-          <View style={styles.modalRow}>
+          <View style={styles.modalSummaryBlock}>
             <Text style={styles.modalLabel}>Summary</Text>
-          </View>
-          <View style={styles.modalRow}>
-            <Text style={styles.modalValue}>
+            <Text style={styles.modalSummaryText}>
               {activeSummary?.summary}
             </Text>
           </View>
@@ -285,7 +274,6 @@ const DashboardScreen = ({ openMenu }: Props) => {
             </Text>
           </View>
 
-          {/* Buttons */}
           <View style={styles.modalButtons}>
             <TouchableOpacity
               style={styles.secondaryBtn}
@@ -298,9 +286,7 @@ const DashboardScreen = ({ openMenu }: Props) => {
 
             <TouchableOpacity
               style={styles.primaryBtn}
-              onPress={() =>
-                Linking.openURL(activeSummary?.tenant_link!)
-              }
+              onPress={() => Linking.openURL(dynatraceLink)}
             >
               <Text style={styles.primaryText}>
                 Dynatrace Problem
@@ -310,8 +296,7 @@ const DashboardScreen = ({ openMenu }: Props) => {
         </View>
       </Modal>
 
-
-      {/* FILTER MODAL */}
+      {/* ================= FILTER MODAL ================= */}
       <Modal visible={filterVisible} transparent animationType="fade">
         <Pressable
           style={styles.backdrop}
@@ -348,7 +333,7 @@ const styles = StyleSheet.create({
 
   headerRow: {
     position: 'absolute',
-    top: 50,
+    top: 60,
     left: 20,
     right: 20,
     flexDirection: 'row',
@@ -531,7 +516,7 @@ const styles = StyleSheet.create({
   },
 
   modalValue: {
-    width: '60%',
+    width: '100%',
     fontSize: 14,
     fontWeight: '500',
     color: '#111827',
@@ -585,5 +570,17 @@ const styles = StyleSheet.create({
     color: '#FFF',
     fontWeight: '600',
   },
+
+  modalSummaryBlock: {
+    marginTop: 8,
+  },
+  
+  modalSummaryText: {
+    marginTop: 6,
+    fontSize: 14,
+    lineHeight: 20,
+    color: '#111827',
+  },
+  
 
 });

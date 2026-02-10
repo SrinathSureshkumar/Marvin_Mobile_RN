@@ -165,7 +165,7 @@ const CatchpointSonarScreen = ({ openMenu }: Props) => {
           <SideMenuIcon width={26} height={26} />
         </TouchableOpacity>
         <SapLogo width={90} height={48} />
-        <Text>Hello, User</Text>
+        <Text>Hello,{'\n'}User</Text>
       </View>
 
       <View style={styles.divider} />

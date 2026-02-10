@@ -115,7 +115,7 @@ const ChatScreen = ({ openMenu }: Props) => {
           <SideMenuIcon width={28} height={28} />
         </TouchableOpacity>
         <SapLogo width={90} height={48} />
-        <Text style={styles.userText}>Hello, User</Text>
+        <Text>Hello,{'\n'}User</Text>
       </View>
 
       <View style={styles.divider} />
@@ -175,14 +175,9 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'space-between',
     paddingHorizontal: 20,
-    paddingTop: 50,
+    paddingTop: 60,
     paddingBottom: 12,
     backgroundColor: '#F5F6F8',
-  },
-
-  userText: {
-    fontSize: 14,
-    fontWeight: '500',
   },
 
   titleAndLink: {
