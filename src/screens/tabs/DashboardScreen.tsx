@@ -219,7 +219,7 @@ const DashboardScreen = ({ openMenu }: Props) => {
       {loading ? (
         <ActivityIndicator size="large" />
       ) : (
-        <FlatList data={data} renderItem={renderItem} />
+        <FlatList data={data} renderItem={renderItem} showsVerticalScrollIndicator={false}/>
       )}
 
       {/* ================= LIVE SUMMARY MODAL (ADDED BACK) ================= */}

@@ -96,6 +96,7 @@ const SideMenu = ({
           label="Situation Center"
           Icon={SituationIcon}
           active={activeRoute === 'SituationCenter'}
+          disabled
           onPress={() => onNavigate('SituationCenter')}
         />
 
@@ -117,6 +118,7 @@ const SideMenu = ({
           label="Chat"
           Icon={ChatIcon}
           active={activeRoute === 'Chat'}
+          disabled
           onPress={() => onNavigate('Chat')}
         />
 
@@ -146,33 +148,41 @@ type MenuItemProps = {
   onPress: () => void;
   Icon: React.FC<{ width?: number; height?: number; color?: string }>;
   active?: boolean;
+  disabled?: boolean;
 };
+
 
 const MenuItem = ({
   label,
   onPress,
   Icon,
   active,
-}: MenuItemProps) => (
-  <TouchableOpacity
-    style={styles.item}
-    onPress={onPress}
-  >
-    <Icon
-      width={20}
-      height={20}
-      color={active ? '#2563EB' : '#374151'}
-    />
-    <Text
-      style={[
-        styles.itemText,
-        active && { color: 'black' }
-      ]}
+  disabled,
+}: MenuItemProps) => {
+  const iconColor = disabled
+    ? '#9CA3AF'
+    : active
+    ? '#2563EB'
+    : '#374151';
+
+  const textColor = disabled
+    ? '#9CA3AF'
+    : '#111827';
+
+  return (
+    <TouchableOpacity
+      style={styles.item}
+      onPress={onPress}
+      disabled={disabled}
     >
-      {label}
-    </Text>
-  </TouchableOpacity>
-);
+      <Icon width={20} height={20} color={iconColor} />
+      <Text style={[styles.itemText, { color: textColor }]}>
+        {label}
+      </Text>
+    </TouchableOpacity>
+  );
+};
+
 
 export default SideMenu;
 
@@ -271,8 +281,7 @@ const styles = StyleSheet.create({
 
   version: {
     marginTop: 6,
-    fontSize: 12,
-    color: '#9CA3AF',
+    fontSize: 14,
     textAlign: 'center',
   },
 });
