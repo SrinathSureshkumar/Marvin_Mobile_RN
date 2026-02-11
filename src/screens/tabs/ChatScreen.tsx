@@ -128,7 +128,7 @@ const ChatScreen = ({ openMenu }: Props) => {
 
       {/* 🔒 FIXED TITLE + LINK */}
       <View style={styles.titleAndLink}>
-        <Text style={styles.title}>Catchpoint</Text>
+        <Text style={styles.title}>Stackmap</Text>
 
         <TouchableOpacity onPress={() => Linking.openURL(STACK_MAPS_URL)}>
           <Text style={styles.link}>Visit available stack maps</Text>

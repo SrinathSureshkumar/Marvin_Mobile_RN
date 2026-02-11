@@ -79,7 +79,7 @@ const SideMenu = ({
 
         {/* MENU ITEMS */}
         <MenuItem
-          label="Marvin Dashboard"
+          label="Dashboard"
           Icon={DashboardIcon}
           active={activeRoute === 'Dashboard'}
           onPress={() => onNavigate('Dashboard')}
@@ -101,17 +101,17 @@ const SideMenu = ({
         />
 
         <MenuItem
-          label="Catchpoint Sonar"
+          label="Sonar"
           Icon={SonarIcon}
           active={activeRoute === 'CatchpointSonar'}
-          onPress={() => onNavigate('CatchpointSonar')}
+          onPress={() => onNavigate('Sonar')}
         />
 
         <MenuItem
-          label="Catchpoint Stackmap"
+          label="Stackmap"
           Icon={StackmapIcon}
           active={activeRoute === 'CatchpointStackmap'}
-          onPress={() => onNavigate('Catchpoint')}
+          onPress={() => onNavigate('Stackmap')}
         />
 
         <MenuItem

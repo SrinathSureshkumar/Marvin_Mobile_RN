@@ -176,7 +176,7 @@ const CatchpointSonarScreen = ({ openMenu }: Props) => {
 
       <View style={styles.divider} />
 
-      <Text style={styles.title}>Catchpoint Sonar</Text>
+      <Text style={styles.title}>Sonar</Text>
 
       {/* TABS */}
       <View style={styles.tabs}>
