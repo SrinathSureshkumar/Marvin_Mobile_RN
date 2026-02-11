@@ -201,7 +201,7 @@ const DashboardScreen = ({ openMenu }: Props) => {
       <View style={styles.titleRow}>
         <Text style={styles.title}>Dashboard</Text>
         <TouchableOpacity onPress={() => setFilterVisible(true)}>
-          <FilterImg width={24} height={24} />
+          <FilterImg width={30} height={30} />
         </TouchableOpacity>
       </View>
 

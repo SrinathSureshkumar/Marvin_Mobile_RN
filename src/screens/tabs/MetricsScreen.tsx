@@ -177,7 +177,7 @@ const MetricsScreen = ({ openMenu }: Props) => {
       <View style={styles.titleRow}>
         <Text style={styles.title}>Metrics</Text>
         <TouchableOpacity onPress={() => setFilterVisible(true)}>
-          <FilterIcon width={22} height={22} />
+          <FilterIcon width={30} height={30} />
         </TouchableOpacity>
       </View>
 
